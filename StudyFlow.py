@@ -8,11 +8,24 @@ from tkinter.ttk import Entry
 class App(Tk):
     def __init__(self):
         super().__init__() # super class initialization
-        self.title('StudyFlow') #app title
+        self.title('StudyFlow') # app title
         self.Position() # positioning the window at center of the screen
+        self.GraphicInit() # UI of app
+        self.ResetValues() # set the entries to default values
+        self.InSession = False
+        self.InCore = False
+        self.InPause = False
+
+    def Position(self, Width = 800, Height = 600, StartX = -1, StartY = -1): # this function set dimensions and osition of the app
+        if StartX == -1 or StartY == -1 or (StartX == -1 and StartY == -1): # chechk if parameter are not set
+            StartX = self.winfo_screenwidth()//2 - Width//2 # x center position
+            StartY = self.winfo_screenheight()//2 - Height//2 # y center position
+
+        self.geometry(f'{Width}x{Height}+{StartX}+{StartY}') #placing the window
+
+    def GraphicInit(self):
         self.Win = Frame(self) # root container
         self.Win.place(anchor='n', relwidth = 1.0, relheight = 1.0, relx = 0.5) #placing the root container
-
         self.TimeFrames = [Frame(self.Win), Frame(self.Win), Frame(self.Win), Frame(self.Win), Frame(self.Win)] #containers for labels and entries
         TimeLabelSize = 14 # font size of label above entries
         LabelEntryDistance = 0.04 # distance between label and entry (percentage)
@@ -63,22 +76,57 @@ class App(Tk):
         self.Sessions[1].place(anchor = 'n', relx = 0.5, rely = LabelEntryDistance, relwidth = 0.5) # placingthe session entry
 
         self.Timer = StringVar(self.Win, '00:00') # label string for display the time
-        self.TimerDisplay = Label(self, textvariable = self.Timer, font = ('courier', 160), fg = '#ffffff', bg = '#000000') #timer label
-        self.TimerDisplay.place(anchor = 'n', relx = 0.5 , rely = 0.27) # placing the timer label
+        self.TimerDisplay = Label(self.Win, textvariable = self.Timer, font = ('courier', 160), fg = '#ffffff', bg = '#000000') #timer label
+        self.TimerDisplay.place(anchor = 'n', relx = 0.5 , rely = 0.27, relwidth = 0.95) # placing the timer label
 
-        self.StartStop = Button(self, text = 'Start/Stop') # start/stop button to initiate/finish the sequence #TODO implement lambdas to make the button work
-        self.StartStop.place(anchor = 'n', relx = 0.25, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the start/stop button
-        self.StartStop = Button(self, text = 'Play/Pause') # play/pause button to control the sequences #TODO implement lambdas to make the button work
-        self.StartStop.place(anchor = 'n', relx = 0.75, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the play/pause button
-        self.Reset = Button(self, text = 'Reset') #TODO implement lambdas to make the button work
-        self.Reset.place(anchor = 'n', relx = 0.5, rely = 0.85, relwidth = 0.8, relheight = 0.1) # placing the reset button
+        self.StartStopButton = Button(self.Win, text = 'Start/Stop', command = lambda : self.StartStop()) # start/stop button to initiate/finish the sequence #TODO implement lambdas to make the button work
+        self.StartStopButton.place(anchor = 'n', relx = 0.175, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the start/stop button
+        self.PlayPauseButton = Button(self.Win, text = 'Play/Pause') # play/pause button to control the sequences #TODO implement lambdas to make the button work
+        self.PlayPauseButton.place(anchor = 'n', relx = 0.5, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the play/pause button
+        self.ResetButton = Button(self.Win, text = 'Reset values', command = lambda : self.ResetValues()) # reset button to reset the entries to default
+        self.ResetButton.place(anchor = 'n', relx = 0.825, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the reset button
+        self.StartBreakButton = Button(self.Win, text = 'Skip to break time', command = lambda : self.SkipToBreak()) #
+        self.StartBreakButton.place(anchor = 'n', relx = 0.175, rely = 0.825, relwidth = 0.3, relheight = 0.1) # placing the skip button
+        self.TerminateSessionButton = Button(self.Win, text = 'Terminate current session', command = lambda : self.TerminateSession())
+        self.TerminateSessionButton.place(anchor = 'n', relx = 0.5, rely = 0.825, relwidth = 0.3, relheight = 0.1)
+        self.TerminateAllButton = Button(self.Win, text = 'Stop all sessions', command = lambda : self.TerminateAllSessionsSession())
+        self.TerminateAllButton.place(anchor = 'n', relx = 0.825, rely = 0.825, relwidth = 0.3, relheight = 0.1)
 
-    def Position(self, Width = 800, Height = 600, StartX = -1, StartY = -1): # this function set dimensions and osition of the app
-        if StartX == -1 or StartY == -1 or (StartX == -1 and StartY == -1): # chechk if parameter are not set
-            StartX = self.winfo_screenwidth()//2 - Width//2 # x center position
-            StartY = self.winfo_screenheight()//2 - Height//2 # y center position
+    def StartStop(self):
+        if self.InSession:
+            self.InSession = False
+        else:
+            self.InSession = True
+            self.Timer()
 
-        self.geometry(f'{Width}x{Height}+{StartX}+{StartY}') #placing the window
+    def Timer(self):
+        while self.InSession:
+            while not self.InPause:
+                pass
+
+    def PlayPause(self):
+        pass
+
+    def ResetValues(self):
+        self.MinTime[1].delete(0,'end')
+        self.MinTime[1].insert(0, '40')
+        self.MaxTime[1].delete(0,'end')
+        self.MaxTime[1].insert(0, '60')
+        self.BreakTime[1].delete(0,'end')
+        self.BreakTime[1].insert(0, '25')
+        self.OverTime[1].delete(0,'end')
+        self.OverTime[1].insert(0, '10')
+        self.Sessions[1].delete(0,'end')
+        self.Sessions[1].insert(0, '3')
+
+    def SkipToBreak(self):
+        pass
+
+    def TerminateSession(self):
+        pass
+
+    def TerminateAllSessions(self):
+        pass
 
 if __name__ == '__main__':
     Application = App()
