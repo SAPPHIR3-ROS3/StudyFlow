@@ -12,9 +12,16 @@ class App(Tk):
         self.Position() # positioning the window at center of the screen
         self.GraphicInit() # UI of app
         self.ResetValues() # set the entries to default values
-        self.InSession = False
-        self.InCore = False
-        self.InPause = False
+        self.InSession = False # boolean to check if the user started the process
+        self.InCore = False # boolean to check if the user is in the core part of session
+        self.InPause = False # boolean to check if the user pause the timer
+        self.InBreak = False # boolean to check if the user is in break time (after the core time)
+        self.Counter = 0 # count the time
+        self.ActiveMinTime = 0 # set minimum time
+        self.ActiveMaxTime = 0 #set maximum time
+        self.ActiveBreakTime = 0 #set break time
+        self.ActiveOverTime = 0 #set over time
+        self.ActiveSession = 0 #set sessions repetition
 
     def Position(self, Width = 800, Height = 600, StartX = -1, StartY = -1): # this function set dimensions and osition of the app
         if StartX == -1 or StartY == -1 or (StartX == -1 and StartY == -1): # chechk if parameter are not set
@@ -23,7 +30,7 @@ class App(Tk):
 
         self.geometry(f'{Width}x{Height}+{StartX}+{StartY}') #placing the window
 
-    def GraphicInit(self):
+    def GraphicInit(self): # this function draws the graphics
         self.Win = Frame(self) # root container
         self.Win.place(anchor='n', relwidth = 1.0, relheight = 1.0, relx = 0.5) #placing the root container
         self.TimeFrames = [Frame(self.Win), Frame(self.Win), Frame(self.Win), Frame(self.Win), Frame(self.Win)] #containers for labels and entries
@@ -75,39 +82,78 @@ class App(Tk):
         self.Sessions[0].place(anchor = 'n', relx = 0.5, relwidth = 0.94) # placing the session label
         self.Sessions[1].place(anchor = 'n', relx = 0.5, rely = LabelEntryDistance, relwidth = 0.5) # placingthe session entry
 
-        self.Timer = StringVar(self.Win, '00:00') # label string for display the time
-        self.TimerDisplay = Label(self.Win, textvariable = self.Timer, font = ('courier', 160), fg = '#ffffff', bg = '#000000') #timer label
+        self.TimerValue = StringVar(self.Win, '00:00') # label string for display the time
+        self.TimerDisplay = Label(self.Win, textvariable = self.TimerValue, font = ('courier', 160), fg = '#ffffff', bg = '#000000') #timer label
         self.TimerDisplay.place(anchor = 'n', relx = 0.5 , rely = 0.27, relwidth = 0.95) # placing the timer label
 
-        self.StartStopButton = Button(self.Win, text = 'Start/Stop', command = lambda : self.StartStop()) # start/stop button to initiate/finish the sequence #TODO implement lambdas to make the button work
+        self.StartStopButton = Button(self.Win, text = 'Start/Stop', command = lambda : self.StartStop()) # start/stop button to initiate/finish the sequence
         self.StartStopButton.place(anchor = 'n', relx = 0.175, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the start/stop button
-        self.PlayPauseButton = Button(self.Win, text = 'Play/Pause') # play/pause button to control the sequences #TODO implement lambdas to make the button work
+        self.PlayPauseButton = Button(self.Win, text = 'Play/Pause', command = lambda : self.PlayPause()) # play/pause button to control the sequences
         self.PlayPauseButton.place(anchor = 'n', relx = 0.5, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the play/pause button
         self.ResetButton = Button(self.Win, text = 'Reset values', command = lambda : self.ResetValues()) # reset button to reset the entries to default
         self.ResetButton.place(anchor = 'n', relx = 0.825, rely = 0.7, relwidth = 0.3, relheight = 0.1) # placing the reset button
-        self.StartBreakButton = Button(self.Win, text = 'Skip to break time', command = lambda : self.SkipToBreak()) #
+        self.StartBreakButton = Button(self.Win, text = 'Skip to break time', command = lambda : self.SkipToBreak()) # TODO implement lambdas to make the button work
         self.StartBreakButton.place(anchor = 'n', relx = 0.175, rely = 0.825, relwidth = 0.3, relheight = 0.1) # placing the skip button
-        self.TerminateSessionButton = Button(self.Win, text = 'Terminate current session', command = lambda : self.TerminateSession())
-        self.TerminateSessionButton.place(anchor = 'n', relx = 0.5, rely = 0.825, relwidth = 0.3, relheight = 0.1)
-        self.TerminateAllButton = Button(self.Win, text = 'Stop all sessions', command = lambda : self.TerminateAllSessionsSession())
-        self.TerminateAllButton.place(anchor = 'n', relx = 0.825, rely = 0.825, relwidth = 0.3, relheight = 0.1)
+        self.EndSessionButton = Button(self.Win, text = 'End current session', command = lambda : self.EndSession()) # button to end the current session (break time included)
+        self.EndSessionButton.place(anchor = 'n', relx = 0.5, rely = 0.825, relwidth = 0.3, relheight = 0.1) # placing the end button
+        self.NextSessionButton = Button(self.Win, text = 'Go to next session', command = lambda : self.NextSession())
+        self.NextSessionButton.place(anchor = 'n', relx = 0.825, rely = 0.825, relwidth = 0.3, relheight = 0.1) # placing the
 
-    def StartStop(self):
-        if self.InSession:
-            self.InSession = False
+    def StartStop(self): # this function start/stop the sessions of study
+        if self.InSession: # check if the session is already active
+            self.Counter = 0 # reset the timer
+            self.TimerValue.set('00:00') # reset the displayed timer
+            self.InSession = False # reset session boolean
+            self.ActiveMinTime = 0 # reset minimum time
+            self.MinTime[1].config(state = 'enabled') # enabling input on min time field
+            self.ActiveMaxTime = 0 # reset mmaximum time
+            self.MaxTime[1].config(state = 'enabled') # enabling input on max time field
+            self.ActiveBreakTime = 0 # reset minimum time
+            self.BreakTime[1].config(state = 'enabled') # enabling input on break time field
+            self.ActiveOverTime = 0 # reset minimum time
+            self.OverTime[1].config(state = 'enabled') # enabling input on over time field
+            self.ActiveSession = 0 # reset minimum time
+            self.Sessions[1].config(state = 'enabled') # enabling input on session field
+            self.InSession = False # reset the user to not in session
+            self.InCore = False # reset the user to nt in core part of session
+            self.InPause = False # rest the user to not in pause during session
+            self.InBreak = False # reset the user to not in break part
+
         else:
-            self.InSession = True
-            self.Timer()
-
-    def Timer(self):
-        while self.InSession:
-            while not self.InPause:
-                pass
+            self.InSession = True # set the user in session mode
+            self.ActiveMinTime = int(self.MinTime[1].get()) * 60 # convert the user given input to minutes as min time
+            self.MinTime[1].config(state = 'disabled') # disable the change of input in the entrybox of min time
+            self.ActiveMaxTime = int(self.MaxTime[1].get()) * 60 # convert the user given input to minutes as max time
+            self.MaxTime[1].config(state = 'disabled') # disable the change of input in the entrybox of max time
+            self.ActiveBreakTime = int(self.BreakTime[1].get()) * 60 # convert the user given input to minutes as break time
+            self.BreakTime[1].config(state = 'disabled') # disable the change of input in the entrybox of break time
+            self.ActiveOverTime = int(self.OverTime[1].get()) * 60 # convert the user given input to minutes as over time
+            self.OverTime[1].config(state = 'disabled') # disable the change of input in the entrybox of over time
+            self.ActiveSession = 1 # set the use in the first session
+            self.Sessions[1].config(state = 'disabled') # disable the change of input in the entrybox of number of sessions
+            self.InSession = True # set the user in session
+            self.InCore = True # put the user in core part of the session
+            self.TimeCount() # start the timer
 
     def PlayPause(self):
-        pass
+        if self.InSession:
+            if self.InPause:
+                self.InPause = False
+            else:
+                self.InPause = True
+            self.TimeCount()
 
-    def ResetValues(self):
+    def TimeCount(self):
+        if self.InSession:
+            if not self.InPause:
+                self.Counter += 1
+                Seconds = str(self.Counter % 60).zfill(2)
+                Minutes = str((self.Counter - int(Seconds)) // 60).zfill(2)
+                #print(self.Counter)
+                self.TimerValue.set(f'{Minutes}:{Seconds}')
+                self.after(1000, self.TimeCount)
+
+    def ResetValues(self): # this function reset values to defalut
         self.MinTime[1].delete(0,'end')
         self.MinTime[1].insert(0, '40')
         self.MaxTime[1].delete(0,'end')
@@ -120,12 +166,13 @@ class App(Tk):
         self.Sessions[1].insert(0, '3')
 
     def SkipToBreak(self):
+        if not self.InCore:
+            pass
+
+    def EndSession(self):
         pass
 
-    def TerminateSession(self):
-        pass
-
-    def TerminateAllSessions(self):
+    def NextSession(self):
         pass
 
 if __name__ == '__main__':
