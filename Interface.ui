@@ -142,7 +142,7 @@ border-radius: 15px</string>
             </property>
             <layout class="QHBoxLayout" name="TitleButtonsLayout">
              <item>
-              <widget class="QPushButton" name="MaximizButton">
+              <widget class="QPushButton" name="MaximizeButton">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>16</horstretch>
@@ -178,7 +178,7 @@ QPushButton:hover
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="MinimizieButton">
+              <widget class="QPushButton" name="MinimizeButton">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                  <horstretch>16</horstretch>
@@ -342,6 +342,9 @@ QPushButton:hover
                    <property name="spacing">
                     <number>5</number>
                    </property>
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetDefaultConstraint</enum>
+                   </property>
                    <property name="leftMargin">
                     <number>10</number>
                    </property>
@@ -356,6 +359,12 @@ QPushButton:hover
                    </property>
                    <item>
                     <widget class="QLineEdit" name="MinTimeEntry">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>380</width>
@@ -373,6 +382,9 @@ QPushButton:hover
                       <string notr="true">color:rgb(85, 85, 127);
 background-color: rgba(38, 97, 139, 100);
 border-radius: 8px;</string>
+                     </property>
+                     <property name="inputMethodHints">
+                      <set>Qt::ImhDigitsOnly</set>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -384,6 +396,12 @@ border-radius: 8px;</string>
                    </item>
                    <item>
                     <widget class="QLineEdit" name="MaxTimeEntry">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>380</width>
@@ -401,6 +419,9 @@ border-radius: 8px;</string>
                       <string notr="true">color:rgb(85, 85, 127);
 background-color: rgba(38, 97, 139, 100);
 border-radius: 8px;</string>
+                     </property>
+                     <property name="inputMethodHints">
+                      <set>Qt::ImhDigitsOnly</set>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -414,7 +435,7 @@ border-radius: 8px;</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QFrame" name="MIddleRow">
+                 <widget class="QFrame" name="MiddleRow">
                   <property name="frameShape">
                    <enum>QFrame::StyledPanel</enum>
                   </property>
@@ -424,6 +445,9 @@ border-radius: 8px;</string>
                   <layout class="QHBoxLayout" name="MIddleRowLayout">
                    <property name="spacing">
                     <number>5</number>
+                   </property>
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
                    <property name="leftMargin">
                     <number>10</number>
@@ -439,6 +463,12 @@ border-radius: 8px;</string>
                    </property>
                    <item>
                     <widget class="QLineEdit" name="BreakTimeEntry">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>380</width>
@@ -456,6 +486,9 @@ border-radius: 8px;</string>
                       <string notr="true">color:rgb(85, 85, 127);
 background-color: rgba(38, 97, 139, 100);
 border-radius: 8px;</string>
+                     </property>
+                     <property name="inputMethodHints">
+                      <set>Qt::ImhDigitsOnly</set>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -467,6 +500,12 @@ border-radius: 8px;</string>
                    </item>
                    <item>
                     <widget class="QLineEdit" name="OverTimeEntry">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>380</width>
@@ -484,6 +523,12 @@ border-radius: 8px;</string>
                       <string notr="true">color:rgb(85, 85, 127);
 background-color: rgba(38, 97, 139, 100);
 border-radius: 8px;</string>
+                     </property>
+                     <property name="inputMethodHints">
+                      <set>Qt::ImhDigitsOnly</set>
+                     </property>
+                     <property name="echoMode">
+                      <enum>QLineEdit::Normal</enum>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -506,29 +551,29 @@ border-radius: 8px;</string>
                   </property>
                   <layout class="QHBoxLayout" name="LastRowLayout">
                    <property name="spacing">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <property name="leftMargin">
-                    <number>0</number>
+                    <number>10</number>
                    </property>
                    <property name="topMargin">
                     <number>0</number>
                    </property>
                    <property name="rightMargin">
-                    <number>0</number>
+                    <number>10</number>
                    </property>
                    <property name="bottomMargin">
                     <number>0</number>
                    </property>
                    <item>
                     <widget class="QLineEdit" name="SessionsEntry">
-                     <property name="minimumSize">
-                      <size>
-                       <width>385</width>
-                       <height>35</height>
-                      </size>
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
                      </property>
-                     <property name="maximumSize">
+                     <property name="minimumSize">
                       <size>
                        <width>385</width>
                        <height>35</height>
@@ -545,6 +590,9 @@ border-radius: 8px;</string>
                       <string notr="true">color:rgb(85, 85, 127);
 background-color: rgba(38, 97, 139, 100);
 border-radius: 8px;</string>
+                     </property>
+                     <property name="inputMethodHints">
+                      <set>Qt::ImhDigitsOnly</set>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignCenter</set>
@@ -586,6 +634,12 @@ border-radius: 8px;</string>
                 </property>
                 <item>
                  <widget class="QPushButton" name="StartStopButton">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -609,6 +663,12 @@ QPushButton:hover
                 </item>
                 <item>
                  <widget class="QPushButton" name="PlayPauseButton">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -632,6 +692,12 @@ QPushButton:hover
                 </item>
                 <item>
                  <widget class="QPushButton" name="SkipToBreakButton">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
@@ -685,15 +751,15 @@ QPushButton:hover
              </property>
              <item>
               <widget class="QLabel" name="TimeDysplay">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>265</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
                  <height>265</height>
                 </size>
                </property>
@@ -704,6 +770,9 @@ QPushButton:hover
                  <stylestrategy>PreferAntialias</stylestrategy>
                 </font>
                </property>
+               <property name="contextMenuPolicy">
+                <enum>Qt::DefaultContextMenu</enum>
+               </property>
                <property name="styleSheet">
                 <string notr="true">color: rgb(255, 255, 255);
 background-color: rgba(38, 97, 139, 100);</string>
@@ -713,6 +782,9 @@ background-color: rgba(38, 97, 139, 100);</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
+               </property>
+               <property name="indent">
+                <number>0</number>
                </property>
               </widget>
              </item>
@@ -791,6 +863,9 @@ background-color: rgba(38, 97, 139, 100);</string>
               <width>30</width>
               <height>30</height>
              </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
             <property name="frameShape">
              <enum>QFrame::StyledPanel</enum>
