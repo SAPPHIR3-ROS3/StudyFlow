@@ -1,11 +1,13 @@
 from PySide6.QtCore import QCoreApplication
-from PySide6.QtCore import QFile
-from PySide6.QtGui import QFont
-from PySide6.QtGui import QScreen
 from PySide6.QtCore import QMetaObject
 from PySide6.QtCore import QPointF
 from PySide6.QtCore import QSize
+from PySide6.QtCore import QUrl
 from PySide6.QtCore import Qt
+from PySide6.QtCore import QBasicTimer
+from PySide6.QtGui import QFont
+from PySide6.QtGui import QIntValidator
+from PySide6.QtMultimedia import QSoundEffect
 from PySide6.QtWidgets import QApplication
 from PySide6.QtWidgets import QMainWindow
 from PySide6.QtWidgets import QFrame
@@ -19,45 +21,38 @@ from PySide6.QtWidgets import QSizePolicy
 from PySide6.QtWidgets import QVBoxLayout
 from PySide6.QtWidgets import QWidget
 from sys import exit as Exit
-from sys import exc_info
-import traceback
 
 class App(QMainWindow):
     def __init__(self): # constructor
         super(App, self).__init__() # super constructor
-        self.isMaximized = False
+        self.isMaximized = False # status of the window at the start of the application
+        self.InSession = False # boolean to check if the user started the process
+        self.InCore = False # boolean to check if the user is in the core part of session
+        self.Counter = 0 # count the time
+        self.BreakCounter = 0
+        self.ActiveMinTime = 0 # set minimum time
+        self.ActiveMaxTime = 0 # set maximum time
+        self.ActiveBreakTime = 0 # set break time
+        self.ActiveOverTime = 0 # set over time
+        self.ActiveSession = 0 # set sessions repetition
+        self.TotalSessions = 0 # set the total session
         self.DragPos = QPointF(0, 0) # Start position of mouse for the Window
-        self.Screen = QScreen()
         self.GUI() # GUI initialization
-        self.TitleBar.mouseMoveEvent = self.MoveWindow
-        self.ResizeGrip = QSizeGrip(self.Resize)
-        #self.ResizeGrip.setStyle(QStyleFactory['Fusion'])
-        self.ResizeGrip.setStyleSheet\
-            (
-                """
-                width: 17px;
-                height: 17px;
-                background-color:qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0.282486 rgba(0, 0, 0, 125), stop:0.511364 rgba(255, 255, 255, 0));
-                margin: 5px;
-                border-radius: 0px 0px 5px 5px;
-                """
-            )
+        self.TitleBar.mouseMoveEvent = self.MoveWindow # allow the window to be moved and dragged around by the title bar
         self.setWindowFlag(Qt.FramelessWindowHint) # remove the title bar from the window
         self.setAttribute(Qt.WA_TranslucentBackground) # make the window transparent
+        self.MinimizeButton.clicked.connect(lambda: self.showMinimized()) # link the minimize button to the minimize function
+        self.MaximizeButton.clicked.connect(lambda: self.Maximize()) # link the minimize button to maximize function
         self.CloseButton.clicked.connect(lambda: self.close()) # link the close button to close function
-        self.MinimizeButton.clicked.connect(lambda: self.showMinimized())
-        self.MaximizeButton.clicked.connect(lambda: self.Maximize()) # link the minimize button to minimize function
+        self.StartStopButton.clicked.connect(lambda: self.StartStop()) # link the start stop button to the start stop function
+        self.PlayPauseButton.clicked.connect(lambda: self.PlayPause()) # link the play pause button to the play pause function
+        self.SkipToBreakButton.clicked.connect(lambda: self.SkipToBreak()) # link the skip to break button to the skip to break function
+        self.ClickSound = QSoundEffect(self) # Sound played when a button is clicked
+        self.ClickSound.setSource(QUrl.fromLocalFile('./Media/click.wav')) # setting the click sound
+        self.Timer = QBasicTimer() # timer that manage the elapsing of tim in the application
         self.show() # show the window
-
-    def SetWindowGeometry(self, Size = tuple(), Position = (-1, -1)): # set the window position and size
-        if Position == (-1, -1): # check if position is default(centered)
-            Screen = QScreen().availableSize() # get the screen size
-            self.resize(Size) # resize the window
-            #self.setGeometry((Screen.width() - Size[0])//2, (Screen.height() - Size[1])//2, Size[0], Size[1]) # resize the window
-        else:
-            self.setGeometry(Position[0], Position[1], Size[0], Size[1]) # resize the window
         
-    def GUI(self):
+    def GUI(self): # graphic initialization
         self.resize(800, 600)
         self.setMinimumSize(QSize(800, 600))
         self.WindowFrame = QWidget(self)
@@ -204,7 +199,7 @@ class App(QMainWindow):
         self.TimeSettingsFrame.setFrameShape(QFrame.StyledPanel)
         self.TimeSettingsFrame.setFrameShadow(QFrame.Raised)
         self.TimeSettingFrameLayout = QVBoxLayout(self.TimeSettingsFrame)
-        self.TimeSettingFrameLayout.setSpacing(5)
+        self.TimeSettingFrameLayout.setSpacing(10)
         self.TimeSettingFrameLayout.setObjectName("TimeSettingFrameLayout")
         self.TimeSettingFrameLayout.setContentsMargins(0, 0, 0, 0)
         self.FirstRow = QFrame(self.TimeSettingsFrame)
@@ -212,7 +207,7 @@ class App(QMainWindow):
         self.FirstRow.setFrameShape(QFrame.StyledPanel)
         self.FirstRow.setFrameShadow(QFrame.Raised)
         self.FirstRowLayout = QHBoxLayout(self.FirstRow)
-        self.FirstRowLayout.setSpacing(5)
+        self.FirstRowLayout.setSpacing(10)
         self.FirstRowLayout.setObjectName("FirstRowLayout")
         self.FirstRowLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
         self.FirstRowLayout.setContentsMargins(10, 0, 10, 0)
@@ -262,11 +257,11 @@ class App(QMainWindow):
         self.MiddleRow.setObjectName("MiddleRow")
         self.MiddleRow.setFrameShape(QFrame.StyledPanel)
         self.MiddleRow.setFrameShadow(QFrame.Raised)
-        self.MIddleRowLayout = QHBoxLayout(self.MiddleRow)
-        self.MIddleRowLayout.setSpacing(5)
-        self.MIddleRowLayout.setObjectName("MIddleRowLayout")
-        self.MIddleRowLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
-        self.MIddleRowLayout.setContentsMargins(10, 0, 10, 0)
+        self.MiddleRowLayout = QHBoxLayout(self.MiddleRow)
+        self.MiddleRowLayout.setSpacing(10)
+        self.MiddleRowLayout.setObjectName("MiddleRowLayout")
+        self.MiddleRowLayout.setSizeConstraint(QLayout.SetDefaultConstraint)
+        self.MiddleRowLayout.setContentsMargins(10, 0, 10, 0)
         self.BreakTimeEntry = QLineEdit(self.MiddleRow)
         self.BreakTimeEntry.setObjectName("BreakTimeEntry")
         sizePolicy1.setHeightForWidth(self.BreakTimeEntry.sizePolicy().hasHeightForWidth())
@@ -283,7 +278,7 @@ class App(QMainWindow):
         )
         self.BreakTimeEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.BreakTimeEntry.setAlignment(Qt.AlignCenter)
-        self.MIddleRowLayout.addWidget(self.BreakTimeEntry)
+        self.MiddleRowLayout.addWidget(self.BreakTimeEntry)
         self.OverTimeEntry = QLineEdit(self.MiddleRow)
         self.OverTimeEntry.setObjectName("OverTimeEntry")
         sizePolicy1.setHeightForWidth(self.OverTimeEntry.sizePolicy().hasHeightForWidth())
@@ -301,7 +296,7 @@ class App(QMainWindow):
         self.OverTimeEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.OverTimeEntry.setEchoMode(QLineEdit.Normal)
         self.OverTimeEntry.setAlignment(Qt.AlignCenter)
-        self.MIddleRowLayout.addWidget(self.OverTimeEntry)
+        self.MiddleRowLayout.addWidget(self.OverTimeEntry)
         self.TimeSettingFrameLayout.addWidget(self.MiddleRow)
         self.LastRow = QFrame(self.TimeSettingsFrame)
         self.LastRow.setObjectName("LastRow")
@@ -348,6 +343,7 @@ class App(QMainWindow):
             """
             QPushButton
             {
+                image: url(./Media/start.png);
                 background-color:rgb(20, 147, 158);
             }
             QPushButton:hover
@@ -367,6 +363,7 @@ class App(QMainWindow):
             """
             QPushButton
             {
+                image: url(./Media/play.png);
             	background-color:rgb(20, 147, 158);
             }
             QPushButton:hover
@@ -386,6 +383,7 @@ class App(QMainWindow):
             """
             QPushButton
             {
+                image: url(./Media/forward.png);
                 background-color:rgb(20, 147, 158);
             }
                 QPushButton:hover
@@ -460,10 +458,26 @@ class App(QMainWindow):
         self.Resize.setStyleSheet("")
         self.Resize.setFrameShape(QFrame.StyledPanel)
         self.Resize.setFrameShadow(QFrame.Raised)
+        self.ResizeGrip = QSizeGrip(self.Resize)
+        self.ResizeGrip.setStyleSheet\
+        (
+            """
+            width: 17px;
+            height: 17px;
+            background-color:qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0.282486 rgba(0, 0, 0, 125), stop:0.511364 rgba(255, 255, 255, 0));
+            margin: 5px;
+            border-radius: 0px 0px 5px 5px;
+            """
+        )
         self.CreditBarLayout.addWidget(self.Resize)
         self.AppLayout.addWidget(self.CreditBarFrame)
         self.WindowLayout.addWidget(self.AppFrame)
         self.setCentralWidget(self.WindowFrame)
+        self.MinTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the min time entry
+        self.MaxTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the max time entry
+        self.BreakTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the break time entry
+        self.OverTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the over time entry
+        self.SessionsEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the sessions entry
         self.retranslateUi()
         QMetaObject.connectSlotsByName(self)
 
@@ -480,12 +494,12 @@ class App(QMainWindow):
         self.Credit.setText(_translate("Window", "by: Patrizio S. Onida")) # set the credit text
 
     def Maximize(self): # this function maximizes the window
-        print('Maximizing window')
         if not self.isMaximized: # check if the window is not maximized
             self.showMaximized() # maximize the window
             self.isMaximized = True # set the window state to maximized
         else: 
             self.showNormal() # unmaximize the window
+            self.resize(800, 600) # resize the window to the minimum size
             self.isMaximized = False # set the window state to not maximized
             #self.SetWindowGeometry((800,600)) # resize the window to original size
     
@@ -500,6 +514,132 @@ class App(QMainWindow):
 
     def mousePressEvent(self, Event): # this function check if the mouse is pressed and save the position of the click event
         self.DragPos = Event.globalPosition() # update the position of the click event
+
+    def ConvertedCounter(self, Counter):# this function convert the counter in time stamp MM:SS 
+        Seconds = str(Counter % 60).zfill(2) # get the number of seconds forced to be always 2 digits 
+        Minutes = str((Counter - int(Seconds)) // 60).zfill(2) # get the number of minutes forced to be always 2 digits
+
+        return f'{Minutes}:{Seconds}'
+    
+    def StartStop(self): # this function start or stop the sessions the user requested
+        self.ClickSound.play() # play the click sound
+        print('StartStop called')
+
+        if self.InSession: # check if the user is in session state
+            self.InSession = False # exit the in session state
+            self.InCore = False # exit the in core state
+            self.InPause = False # exit the in pause state
+            self.Counter = 0 # reset the counter
+            self.BreakCounter = 0 # reset the break counter
+            self.ActiveMinTime = 0 # set minimum time
+            self.ActiveMaxTime = 0 # set maximum time
+            self.ActiveBreakTime = 0 # set break time
+            self.ActiveOverTime = 0 # set over time
+            self.ActiveSession = 0 # set sessions repetition
+            self.TotalSessions = 0 # set the total session
+            self.TotalSessionTime = 0 # set the total time per session
+            self.MinTimeEntry.setReadOnly(False) # set the min time entry as editable
+            self.MinTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the min time entry
+            self.MinTimeEntry.clear() # clear the min time entry
+            self.MaxTimeEntry.setReadOnly(False) # set the max time entry as editable
+            self.MaxTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the max time entry
+            self.MaxTimeEntry.clear() # clear the max time entry
+            self.BreakTimeEntry.setReadOnly(False) # set the break time entry as editable
+            self.BreakTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the break time entry
+            self.BreakTimeEntry.clear() # clear the break time entry
+            self.OverTimeEntry.setReadOnly(False) # set the over time entry as editable
+            self.OverTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the over time entry
+            self.OverTimeEntry.clear() # clear the over time entry
+            self.SessionsEntry.setReadOnly(False) # set the sessions entry as editable
+            self.SessionsEntry.setEnabled(True) # enable the focus (to be clicked) on the sessions entry
+            self.SessionsEntry.clear() # clear the sessions entry
+            self.TimeDysplay.setText('00:00') # set the time display as 0
+            self.Timer.stop() # stop the timer
+        else: # the user is not in the in session state
+            if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
+            self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
+                self.InSession = True # set the user in the in session state
+                self.InCore = True # set the user in the in core state
+                self.Counter = 0 # set the counter to 0
+                self.BreakCounter = 0 # set the break counter to 0
+                self.ActiveMinTime = int(self.MinTimeEntry.text()) * 60 # set minimum time (in minutes)
+                self.ActiveMaxTime = int(self.MaxTimeEntry.text()) * 60 # set maximum time (in minutes)
+                self.ActiveMaxTime = self.ActiveMaxTime if self.ActiveMinTime < self.ActiveMaxTime else self.ActiveMinTime + self.ActiveMaxTime # set the max time bigger than the min time
+                self.ActiveBreakTime = int(self.BreakTimeEntry.text()) * 60 # set break time (in minutes)
+                self.ActiveOverTime = int(self.OverTimeEntry.text()) * 60 # set over time (in minutes)
+                self.ActiveOverTime = self.ActiveMaxTime + self.ActiveOverTime if self.ActiveOverTime < self.ActiveMaxTime else self.ActiveOverTime # set the over time bigger than the max time
+                self.ActiveSession = 1 # set the actual session
+                self.TotalSessions = int(self.SessionsEntry.text()) # set the total session
+                self.MinTimeEntry.setReadOnly(True) # make the min time entry read-only
+                self.MinTimeEntry.setEnabled(False) # make the min time entry not clickable
+                self.MaxTimeEntry.setReadOnly(True) # make the max time entry read-only
+                self.MaxTimeEntry.setEnabled(False) # make the max time entry not clickable
+                self.BreakTimeEntry.setReadOnly(True) # make the break time entry read-only
+                self.BreakTimeEntry.setEnabled(False) # make the break time entry not clickable
+                self.OverTimeEntry.setReadOnly(True) # make the over time entry read-only
+                self.OverTimeEntry.setEnabled(False) # make the over time entry not clickable
+                self.SessionsEntry.setReadOnly(True) # make the sessions entry read-only
+                self.SessionsEntry.setEnabled(False) # make the sessions entry not clickable
+                self.Timer.start(1000, self.Elapse) # start the timer (1 sec interval) to elapse time
+    
+    def PlayPause(self): # this function reverse the pause state
+        print('PlayPause called')
+        self.ClickSound.play() # play the click sound
+
+        if self.InSession: # check if the user is in session
+            self.InPause = not self.InPause # reverse the pause state
+        
+            if self.InPause: # check if the user resumed the session
+                self.Timer.start(1000, self.Elapse) # resume the timer (1 sec interval) to elapse time 
+            else: # the user has paused the session 
+                self.Timer.stop() # "pause" the timer
+    
+    def SkipToBreak(self): # this function allow the user to skip to the break part
+        print('SkipToBreak called')
+        self.ClickSound.play() # play the click sound
+
+        if self.InSession: # check if the user is in session state
+            if not self.InCore: # check if the user is not in core state
+                self.InPause = False # force the user out of the pause state
+
+                if self.InBreak: # check if the user is in the break state
+                    self.InBreak = False # force the user out of the break state
+                    self.InCore = True # force the user in the core state
+                else: # the user is in out of in core state
+                    self.InBreak = True # force the user in the break state
+                    #self.Counter = 0 
+
+    def Elapse(self): # this function elapse time while checking the state of the user
+        if self.InSession: # check if the user is in session state
+            if not self.InPause: # check if the user is not in pause state
+                if self.Counter < self.ActiveOverTime: # check if the user is in in core state
+                    self.Counter += 1 # increment the counter
+                    
+                    if self.Counter >= self.ActiveMinTime: # check if the counter is greater than the min time (in or out of in core state)
+                        self.InCore = False # set the user off the in core state (allow the user to skip to the break)
+
+                    self.TimeDysplay.setText(self.ConvertedCounter(self.Counter)) # convert the counter and display it
+                else: # the user is in break state
+                    self.TimeDysplay.setText('00:00') # reset the time display
+
+                    if self.BreakCounter < self.ActiveBreakTime: # check if the break counter is greater than the break time
+                        self.BreakCounter += 1 # increment the break counter
+                        self.TimeDysplay.setText(self.ConvertedCounter(self.BreakCounter)) # convert the break counter and display it
+                    else: # the user ended the study part and the break part (next session start)
+                        self.ActiveSession += 1 # increment the session counter
+
+                        if self.ActiveSession < self.TotalSessions: # check if the user has sessions to do
+                            self.Counter = 0 # reset the counter
+                            self.BreakCounter = 0 # reset the break counter
+                            self.InCore = True # set the user on the in core state
+                            self.Inbreak = False # set the user off the in break state
+                            self.InPause = False # set the user on the in pause state
+                        else: # the user ended all sessions
+                            self.StartStop() # stop the program (ready to restart)
+            if self.InPause: # the user has paused the timer
+                self.Timer.stop() # the timer is stopped (it can be resumed by the point it stopped)
+        else: # the user has ended the sessions
+            self.Timer.stop() # the timer is stopped (no need to wait timed intervals)
 
 if __name__ == '__main__':
     StudyFlow = QApplication([])
