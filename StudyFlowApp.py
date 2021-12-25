@@ -4,7 +4,7 @@ from PySide6.QtCore import QPointF
 from PySide6.QtCore import QSize
 from PySide6.QtCore import QUrl
 from PySide6.QtCore import Qt
-from PySide6.QtCore import QBasicTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtGui import QIntValidator
 from PySide6.QtMultimedia import QSoundEffect
@@ -28,8 +28,10 @@ class App(QMainWindow):
         self.isMaximized = False # status of the window at the start of the application
         self.InSession = False # boolean to check if the user started the process
         self.InCore = False # boolean to check if the user is in the core part of session
-        self.Counter = 0 # count the time
-        self.BreakCounter = 0
+        self.InPause = False # boolean to check if the user is in the pause
+        self.InBreak = False # boolean to check if the user is in the break
+        self.Counter = 0 # count the time (study part)
+        self.BreakCounter = 0 # count the time (break part)
         self.ActiveMinTime = 0 # set minimum time
         self.ActiveMaxTime = 0 # set maximum time
         self.ActiveBreakTime = 0 # set break time
@@ -49,7 +51,11 @@ class App(QMainWindow):
         self.SkipToBreakButton.clicked.connect(lambda: self.SkipToBreak()) # link the skip to break button to the skip to break function
         self.ClickSound = QSoundEffect(self) # Sound played when a button is clicked
         self.ClickSound.setSource(QUrl.fromLocalFile('./Media/click.wav')) # setting the click sound
-        self.Timer = QBasicTimer() # timer that manage the elapsing of tim in the application
+        self.EndSound = QSoundEffect(self) # Sound played when a part ended
+        self.EndSound.setSource(QUrl.fromLocalFile('./Media/endpart.wav')) # setting the end sound
+        self.Timer = QTimer() # timer that manage the elapsing of tim in the application
+        self.Timer.timeout.connect( lambda: self.Elapse()) # connect the timer to the timer function
+        self.Timer.start(1000) # start the timer
         self.show() # show the window
         
     def GUI(self): # graphic initialization
@@ -395,36 +401,36 @@ class App(QMainWindow):
         self.ButtonSettingsLayout.addWidget(self.SkipToBreakButton)
         self.SettingFrameLayout.addWidget(self.ButtonSettings)
         self.AppContentLayout.addWidget(self.SettingsFrame)
-        self.TimeDysplayFrame = QFrame(self.AppContentFrame)
-        self.TimeDysplayFrame.setObjectName("TimeDysplayFrame")
-        self.TimeDysplayFrame.setFrameShape(QFrame.StyledPanel)
-        self.TimeDysplayFrame.setFrameShadow(QFrame.Raised)
-        self.TimeFrame = QVBoxLayout(self.TimeDysplayFrame)
+        self.TimeDisplayFrame = QFrame(self.AppContentFrame)
+        self.TimeDisplayFrame.setObjectName("TimeDisplayFrame")
+        self.TimeDisplayFrame.setFrameShape(QFrame.StyledPanel)
+        self.TimeDisplayFrame.setFrameShadow(QFrame.Raised)
+        self.TimeFrame = QVBoxLayout(self.TimeDisplayFrame)
         self.TimeFrame.setSpacing(0)
         self.TimeFrame.setObjectName("TimeFrame")
         self.TimeFrame.setContentsMargins(10, 0, 10, 0)
-        self.TimeDysplay = QLabel(self.TimeDysplayFrame)
-        self.TimeDysplay.setObjectName("TimeDysplay")
-        sizePolicy1.setHeightForWidth(self.TimeDysplay.sizePolicy().hasHeightForWidth())
-        self.TimeDysplay.setSizePolicy(sizePolicy1)
-        self.TimeDysplay.setMinimumSize(QSize(0, 265))
+        self.TimeDisplay = QLabel(self.TimeDisplayFrame)
+        self.TimeDisplay.setObjectName("TimeDisplay")
+        sizePolicy1.setHeightForWidth(self.TimeDisplay.sizePolicy().hasHeightForWidth())
+        self.TimeDisplay.setSizePolicy(sizePolicy1)
+        self.TimeDisplay.setMinimumSize(QSize(0, 265))
         font2 = QFont()
         font2.setFamilies(["Yu Gothic Medium"])
         font2.setPointSize(190)
         font2.setStyleStrategy(QFont.PreferAntialias)
-        self.TimeDysplay.setFont(font2)
-        self.TimeDysplay.setContextMenuPolicy(Qt.DefaultContextMenu)
-        self.TimeDysplay.setStyleSheet\
+        self.TimeDisplay.setFont(font2)
+        self.TimeDisplay.setContextMenuPolicy(Qt.DefaultContextMenu)
+        self.TimeDisplay.setStyleSheet\
         (
             """
             color: rgb(255, 255, 255);
             background-color: rgba(38, 97, 139, 100);
             """     
         )
-        self.TimeDysplay.setAlignment(Qt.AlignCenter)
-        self.TimeDysplay.setIndent(0)
-        self.TimeFrame.addWidget(self.TimeDysplay)
-        self.AppContentLayout.addWidget(self.TimeDysplayFrame)
+        self.TimeDisplay.setAlignment(Qt.AlignCenter)
+        self.TimeDisplay.setIndent(0)
+        self.TimeFrame.addWidget(self.TimeDisplay)
+        self.AppContentLayout.addWidget(self.TimeDisplayFrame)
         self.AppLayout.addWidget(self.AppContentFrame)
         self.CreditBarFrame = QFrame(self.AppFrame)
         self.CreditBarFrame.setObjectName("CreditBarFrame")
@@ -490,7 +496,7 @@ class App(QMainWindow):
         self.BreakTimeEntry.setPlaceholderText(_translate("Window", "Break Time (minutes)")) # set the placeholder text on the break time entry
         self.OverTimeEntry.setPlaceholderText(_translate("Window", "Over Time (minutes)")) # set the placeholder text on the over time entry
         self.SessionsEntry.setPlaceholderText(_translate("Window", "Sessions")) # set the placeholder text on the sessions entry
-        self.TimeDysplay.setText(_translate("Window", "00:00")) # set the initial value of the time display
+        self.TimeDisplay.setText(_translate("Window", "00:00")) # set the initial value of the time display
         self.Credit.setText(_translate("Window", "by: Patrizio S. Onida")) # set the credit text
 
     def Maximize(self): # this function maximizes the window
@@ -521,8 +527,10 @@ class App(QMainWindow):
 
         return f'{Minutes}:{Seconds}'
     
-    def StartStop(self): # this function start or stop the sessions the user requested
-        self.ClickSound.play() # play the click sound
+    def StartStop(self, PlaySound = True): # this function start or stop the sessions the user requested
+        if PlaySound: # check if the sound needs to be played
+            self.ClickSound.play() # play the click sound
+
         print('StartStop called')
 
         if self.InSession: # check if the user is in session state
@@ -553,8 +561,6 @@ class App(QMainWindow):
             self.SessionsEntry.setReadOnly(False) # set the sessions entry as editable
             self.SessionsEntry.setEnabled(True) # enable the focus (to be clicked) on the sessions entry
             self.SessionsEntry.clear() # clear the sessions entry
-            self.TimeDysplay.setText('00:00') # set the time display as 0
-            self.Timer.stop() # stop the timer
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
@@ -580,11 +586,21 @@ class App(QMainWindow):
                 self.OverTimeEntry.setEnabled(False) # make the over time entry not clickable
                 self.SessionsEntry.setReadOnly(True) # make the sessions entry read-only
                 self.SessionsEntry.setEnabled(False) # make the sessions entry not clickable
-                self.Timer.start(1000, self.Elapse) # start the timer (1 sec interval) to elapse time
+        
+        self.TimeDisplay.setStyleSheet\
+        (
+            """
+            color: rgb(255, 255,255);
+            background-color: rgba(38, 97, 139, 100);
+            """  
+        )
+        self.TimeDisplay.setText('00:00') # set the time display as 0
     
-    def PlayPause(self): # this function reverse the pause state
+    def PlayPause(self, PlaySound = True): # this function reverse the pause state
+        if PlaySound: # check if the sound needs to be played
+            self.ClickSound.play() # play the click sound
+        
         print('PlayPause called')
-        self.ClickSound.play() # play the click sound
 
         if self.InSession: # check if the user is in session
             self.InPause = not self.InPause # reverse the pause state
@@ -594,9 +610,11 @@ class App(QMainWindow):
             else: # the user has paused the session 
                 self.Timer.stop() # "pause" the timer
     
-    def SkipToBreak(self): # this function allow the user to skip to the break part
+    def SkipToBreak(self, PlaySound = True): # this function allow the user to skip to the break part
+        if PlaySound: # check if the sound needs to be played
+            self.ClickSound.play() # play the click sound
+        
         print('SkipToBreak called')
-        self.ClickSound.play() # play the click sound
 
         if self.InSession: # check if the user is in session state
             if not self.InCore: # check if the user is not in core state
@@ -605,26 +623,66 @@ class App(QMainWindow):
                 if self.InBreak: # check if the user is in the break state
                     self.InBreak = False # force the user out of the break state
                     self.InCore = True # force the user in the core state
-                else: # the user is in out of in core state
+                    self.TimeDisplay.setStyleSheet\
+                    (
+                        """
+                        color: rgb(255, 145, 0);
+                        background-color: rgba(38, 97, 139, 100);
+                        """
+                    )
+                else: # the user is in out of in break state
                     self.InBreak = True # force the user in the break state
-                    #self.Counter = 0 
+                    self.Counter = 0
+                    self.BreakCounter = 0
+                    self.TimeDisplay.setStyleSheet\
+                    (
+                        """
+                        color: rgb(79, 224, 0);
+                        background-color: rgba(38, 97, 139, 100);
+                        """
+                    )
+
+                self.TimeDisplay.setText('00:00') # reset the time display
 
     def Elapse(self): # this function elapse time while checking the state of the user
         if self.InSession: # check if the user is in session state
             if not self.InPause: # check if the user is not in pause state
-                if self.Counter < self.ActiveOverTime: # check if the user is in in core state
+                if self.Counter < self.ActiveOverTime and not self.InBreak: # check if the user is in the study part
                     self.Counter += 1 # increment the counter
-                    
-                    if self.Counter >= self.ActiveMinTime: # check if the counter is greater than the min time (in or out of in core state)
+                    if self.Counter == 1:
+                        self.TimeDisplay.setStyleSheet\
+                        (
+                            """
+                            color: rgb(255, 145, 0);
+                            background-color: rgba(38, 97, 139, 100);
+                            """
+                        )
+                    elif self.Counter == self.ActiveMinTime: # check if the counter is equal the min time (out of in core state)
                         self.InCore = False # set the user off the in core state (allow the user to skip to the break)
-
-                    self.TimeDysplay.setText(self.ConvertedCounter(self.Counter)) # convert the counter and display it
+                        self.TimeDisplay.setStyleSheet\
+                        (
+                            """
+                            color: rgb(255, 234, 0);
+                            background-color: rgba(38, 97, 139, 100);
+                            """     
+                        )
+                    elif self.Counter == self.ActiveMaxTime: # check if the counter is equal the max time 
+                        self.InCore = False # set the user off the in core state (allow the user to skip to the break)
+                        self.TimeDisplay.setStyleSheet\
+                        (
+                            """
+                            color: rgb(158, 0, 0);
+                            background-color: rgba(38, 97, 139, 100);
+                            """     
+                        )
+                    elif self.Counter == self.ActiveOverTime: # check if the counter is equal the over time 
+                        self.SkipToBreak(False)
+                    
+                    self.TimeDisplay.setText(self.ConvertedCounter(self.Counter)) # convert the counter and display it
                 else: # the user is in break state
-                    self.TimeDysplay.setText('00:00') # reset the time display
-
                     if self.BreakCounter < self.ActiveBreakTime: # check if the break counter is greater than the break time
                         self.BreakCounter += 1 # increment the break counter
-                        self.TimeDysplay.setText(self.ConvertedCounter(self.BreakCounter)) # convert the break counter and display it
+                        self.TimeDisplay.setText(self.ConvertedCounter(self.BreakCounter)) # convert the break counter and display it
                     else: # the user ended the study part and the break part (next session start)
                         self.ActiveSession += 1 # increment the session counter
 
@@ -635,11 +693,7 @@ class App(QMainWindow):
                             self.Inbreak = False # set the user off the in break state
                             self.InPause = False # set the user on the in pause state
                         else: # the user ended all sessions
-                            self.StartStop() # stop the program (ready to restart)
-            if self.InPause: # the user has paused the timer
-                self.Timer.stop() # the timer is stopped (it can be resumed by the point it stopped)
-        else: # the user has ended the sessions
-            self.Timer.stop() # the timer is stopped (no need to wait timed intervals)
+                            self.StartStop(False) # stop the program (ready to restart)
 
 if __name__ == '__main__':
     StudyFlow = QApplication([])
