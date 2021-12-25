@@ -53,6 +53,8 @@ class App(QMainWindow):
         self.ClickSound.setSource(QUrl.fromLocalFile('./Media/click.wav')) # setting the click sound
         self.EndSound = QSoundEffect(self) # Sound played when a part ended
         self.EndSound.setSource(QUrl.fromLocalFile('./Media/endpart.wav')) # setting the end sound
+        self.PassPhaseSound = QSoundEffect(self) # Sound played when you pass the min time
+        self.PassPhaseSound.setSource(QUrl.fromLocalFile('./Media/passding.wav'))
         self.Timer = QTimer() # timer that manage the elapsing of tim in the application
         self.Timer.timeout.connect( lambda: self.Elapse()) # connect the timer to the timer function
         self.Timer.start(1000) # start the timer
@@ -577,6 +579,9 @@ class App(QMainWindow):
             self.SessionsEntry.setReadOnly(False) # set the sessions entry as editable
             self.SessionsEntry.setEnabled(True) # enable the focus (to be clicked) on the sessions entry
             self.SessionsEntry.clear() # clear the sessions entry
+
+            for _ in range(3):
+                self.EndSound.play() # play the end sound
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
@@ -722,6 +727,7 @@ class App(QMainWindow):
                             background-color: rgba(38, 97, 139, 100);
                             """     
                         )
+                        self.PassPhaseSound.play()
                     elif self.Counter == self.ActiveMaxTime: # check if the counter is equal the max time 
                         self.InCore = False # set the user off the in core state (allow the user to skip to the break)
                         self.TimeDisplay.setStyleSheet\
@@ -731,7 +737,11 @@ class App(QMainWindow):
                             background-color: rgba(38, 97, 139, 100);
                             """     
                         )
-                    elif self.Counter == self.ActiveOverTime: # check if the counter is equal the over time 
+                        self.EndSound.play()
+                        self.EndSound.play()
+                    elif self.Counter == self.ActiveOverTime: # check if the counter is equal the over time
+                        self.EndSound.play()
+                        self.EndSound.play()
                         self.SkipToBreak(False)
                     
                     self.TimeDisplay.setText(self.ConvertedCounter(self.Counter)) # convert the counter and display it
@@ -748,6 +758,7 @@ class App(QMainWindow):
                             self.InCore = True # set the user on the in core state
                             self.Inbreak = False # set the user off the in break state
                             self.InPause = False # set the user on the in pause state
+                            self.EndSound.play()
                         else: # the user ended all sessions
                             self.StartStop(False) # stop the program (ready to restart)
 
