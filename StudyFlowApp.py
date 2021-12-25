@@ -369,7 +369,7 @@ class App(QMainWindow):
             """
             QPushButton
             {
-                image: url(./Media/play.png);
+                image: url(./Media/pause.png);
             	background-color:rgb(20, 147, 158);
             }
             QPushButton:hover
@@ -479,11 +479,13 @@ class App(QMainWindow):
         self.AppLayout.addWidget(self.CreditBarFrame)
         self.WindowLayout.addWidget(self.AppFrame)
         self.setCentralWidget(self.WindowFrame)
-        self.MinTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the min time entry
-        self.MaxTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the max time entry
-        self.BreakTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the break time entry
-        self.OverTimeEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the over time entry
-        self.SessionsEntry.setValidator(QIntValidator()) # allow the user to enter digits only in the sessions entry
+        Validator = QIntValidator()
+        Validator.setBottom(0)
+        self.MinTimeEntry.setValidator(Validator) # allow the user to enter digits only in the min time entry
+        self.MaxTimeEntry.setValidator(Validator) # allow the user to enter digits only in the max time entry
+        self.BreakTimeEntry.setValidator(Validator) # allow the user to enter digits only in the break time entry
+        self.OverTimeEntry.setValidator(Validator) # allow the user to enter digits only in the over time entry
+        self.SessionsEntry.setValidator(Validator) # allow the user to enter digits only in the sessions entry
         self.retranslateUi()
         QMetaObject.connectSlotsByName(self)
 
@@ -534,6 +536,20 @@ class App(QMainWindow):
         print('StartStop called')
 
         if self.InSession: # check if the user is in session state
+            self.StartStopButton.setStyleSheet\
+            (
+                """
+                QPushButton
+                {
+                    image: url(./Media/start.png);
+                    background-color:rgb(20, 147, 158);
+                }
+                QPushButton:hover
+                {
+                    background-color:rgba(20, 147, 158, 150)
+                }
+                """
+            )
             self.InSession = False # exit the in session state
             self.InCore = False # exit the in core state
             self.InPause = False # exit the in pause state
@@ -564,6 +580,20 @@ class App(QMainWindow):
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
+                self.StartStopButton.setStyleSheet\
+                (
+                    """
+                    QPushButton
+                    {
+                        image: url(./Media/stop.png);
+                        background-color:rgb(20, 147, 158);
+                    }
+                    QPushButton:hover
+                    {
+                        background-color:rgba(20, 147, 158, 150)
+                    }
+                    """
+                )
                 self.InSession = True # set the user in the in session state
                 self.InCore = True # set the user in the in core state
                 self.Counter = 0 # set the counter to 0
@@ -605,10 +635,36 @@ class App(QMainWindow):
         if self.InSession: # check if the user is in session
             self.InPause = not self.InPause # reverse the pause state
         
-            if self.InPause: # check if the user resumed the session
-                self.Timer.start(1000, self.Elapse) # resume the timer (1 sec interval) to elapse time 
-            else: # the user has paused the session 
-                self.Timer.stop() # "pause" the timer
+            if self.InPause: # check if the user paused the session
+                self.PlayPauseButton.setStyleSheet\
+                (
+                    """
+                    QPushButton
+                    {
+                        image: url(./Media/play.png);
+                        background-color:rgb(20, 147, 158);
+                    }
+                    QPushButton:hover
+                    {
+                        background-color:rgba(20, 147, 158, 150)
+                    }
+                    """
+                )
+            else: # the user resumed the session
+                self.PlayPauseButton.setStyleSheet\
+                (
+                    """
+                    QPushButton
+                    {
+                        image: url(./Media/pause.png);
+                        background-color:rgb(20, 147, 158);
+                    }
+                    QPushButton:hover
+                    {
+                        background-color:rgba(20, 147, 158, 150)
+                    }
+                    """
+                )
     
     def SkipToBreak(self, PlaySound = True): # this function allow the user to skip to the break part
         if PlaySound: # check if the sound needs to be played
