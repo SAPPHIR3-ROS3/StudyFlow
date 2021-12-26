@@ -13,6 +13,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtMultimedia import QSoundEffect
 from PySide6.QtWidgets import QApplication
 from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMessageBox
 from PySide6.QtWidgets import QFrame
 from PySide6.QtWidgets import QHBoxLayout
 from PySide6.QtWidgets import QLabel
@@ -25,6 +26,86 @@ from PySide6.QtWidgets import QVBoxLayout
 from PySide6.QtWidgets import QWidget
 import sys
 from sys import exit as Exit
+
+WindowCommandStyleSheet = lambda Red, Green, Blue:\
+f"""
+QPushButton
+{{
+	background-color: rgb({Red}, {Green}, {Blue});
+    border-radius: 8px;
+}}
+QPushButton:hover
+{{
+    background-color: rgba({Red}, {Green}, {Blue}, 80);
+}}
+"""
+
+EntryStyleSheet =\
+"""
+QLineEdit
+{
+    color: rgb(255, 255, 255);
+    background-color: rgba(38, 97, 139, 100);
+    border-radius: 8px;
+}
+QToolTip
+{
+    color: rgb(255, 255, 255);
+    background-color: rgba(50, 50, 50, 125);
+    border-radius:10px;
+}
+"""
+
+ActionButtonStyleSheet = lambda ImageUrl:\
+f"""
+QPushButton
+{{
+    image: url({ImageUrl});
+    background-color:rgb(20, 147, 158);
+    border-radius: 15px;
+}}
+QPushButton:hover
+{{
+    background-color:rgba(20, 147, 158, 150)
+}}
+QToolTip
+{{
+    color: rgb(255, 255, 255);
+    background-color: rgba(50, 50, 50, 125);
+    border-radius:10px;
+}}
+"""
+
+MinEntryToolTip =\
+"""FIELD REQUIRED
+In this field you can enter the minimum time you want to study.
+During this part you won't be able to skip to the break fase.
+example: 40 (minutes)"""
+
+MaxEntryToolTip =\
+"""FIELD REQUIRED
+In this field you can enter the maximum time you want to study.
+After passing the minimum time you will be able to skip to the break fase.
+example: 60 (minutes)"""
+BreakEntryToolTip =\
+"""FIELD REQUIRED
+In this field you can enter the minimum time you want to take a break.
+If you will skip during this part you will start next session.
+example: 20 (minutes)"""
+
+OverEntryToolTip =\
+"""FIELD REQUIRED
+in this field you can enter the time after the maximum time ended.
+(if set to 0 there will be no over time)
+not raccommended to go over 10 minutes"""
+
+SessionEntryToolTip =\
+"""FIELD REQUIRED
+in this field you can enter the times you want to repeat the session.
+Session is intended as a period of time while you study a minimum time
+to a maximum time occasionally going in over time and then taking a
+break.
+(if set to 0 or 1 the whole process will be executed once)"""
 
 class App(QMainWindow):
     def __init__(self): # constructor
@@ -80,7 +161,7 @@ class App(QMainWindow):
         (
             """
             background-color:qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(0, 250, 221, 255), stop:1 rgba(50, 122, 178, 255));
-            border-radius: 15px
+            border-radius: 15px;
             """
         )
         self.AppFrame.setFrameShape(QFrame.NoFrame)
@@ -131,20 +212,7 @@ class App(QMainWindow):
         self.MaximizeButton.setSizePolicy(sizePolicy)
         self.MaximizeButton.setMinimumSize(QSize(16, 16))
         self.MaximizeButton.setMaximumSize(QSize(16, 16))
-        self.MaximizeButton.setStyleSheet\
-        (
-            """
-            QPushButton
-            {
-            	background-color: rgb(0, 255, 0);
-            	border-radius: 8px;
-            }
-            QPushButton:hover
-            {
-            	background-color: rgba(0, 255, 0, 80);
-            }
-            """
-        )
+        self.MaximizeButton.setStyleSheet(WindowCommandStyleSheet(0, 255, 0))
         self.TitleButtonsLayout.addWidget(self.MaximizeButton)
         self.MinimizeButton = QPushButton(self.TitleButtons)
         self.MinimizeButton.setObjectName("MinimizeButton")
@@ -152,20 +220,7 @@ class App(QMainWindow):
         self.MinimizeButton.setSizePolicy(sizePolicy)
         self.MinimizeButton.setMinimumSize(QSize(16, 16))
         self.MinimizeButton.setMaximumSize(QSize(16, 16))
-        self.MinimizeButton.setStyleSheet\
-        (
-            """
-            QPushButton
-            {
-            	background-color:rgb(255, 170, 0);
-            	border-radius: 8px;
-            }
-            QPushButton:hover
-            {
-            	background-color: rgba(255,170, 0, 80);
-            }
-            """
-        )
+        self.MinimizeButton.setStyleSheet(WindowCommandStyleSheet(255, 170, 0))
         self.TitleButtonsLayout.addWidget(self.MinimizeButton)
         self.CloseButton = QPushButton(self.TitleButtons)
         self.CloseButton.setObjectName("CloseButton")
@@ -173,20 +228,7 @@ class App(QMainWindow):
         self.CloseButton.setSizePolicy(sizePolicy)
         self.CloseButton.setMinimumSize(QSize(16, 16))
         self.CloseButton.setMaximumSize(QSize(16, 16))
-        self.CloseButton.setStyleSheet\
-        (
-            """
-            QPushButton
-            {
-                background-color:rgb(255, 0, 0);
-                border-radius: 8px;
-            }
-            QPushButton:hover
-            {
-                background-color: rgba(255, 0, 0, 80);
-            }
-            """
-        )
+        self.CloseButton.setStyleSheet(WindowCommandStyleSheet(255, 0, 0))
         self.TitleButtonsLayout.addWidget(self.CloseButton)
         self.TitleBarLayout.addWidget(self.TitleButtons)
         self.AppLayout.addWidget(self.TitleBar)
@@ -237,14 +279,7 @@ class App(QMainWindow):
         font1.setPointSize(16)
         font1.setStyleStrategy(QFont.PreferAntialias)
         self.MinTimeEntry.setFont(font1)
-        self.MinTimeEntry.setStyleSheet\
-        (
-            """
-            color:rgb(85, 85, 127);
-            background-color: rgba(38, 97, 139, 100);
-            border-radius: 8px;
-            """
-        )
+        self.MinTimeEntry.setStyleSheet(EntryStyleSheet)
         self.MinTimeEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.MinTimeEntry.setAlignment(Qt.AlignCenter)
         self.FirstRowLayout.addWidget(self.MinTimeEntry)
@@ -254,14 +289,7 @@ class App(QMainWindow):
         self.MaxTimeEntry.setSizePolicy(sizePolicy1)
         self.MaxTimeEntry.setMinimumSize(QSize(380, 35))
         self.MaxTimeEntry.setFont(font1)
-        self.MaxTimeEntry.setStyleSheet\
-        (
-            """
-            color:rgb(85, 85, 127);
-            background-color: rgba(38, 97, 139, 100);
-            border-radius: 8px;
-            """
-        )
+        self.MaxTimeEntry.setStyleSheet(EntryStyleSheet)
         self.MaxTimeEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.MaxTimeEntry.setAlignment(Qt.AlignCenter)
         self.FirstRowLayout.addWidget(self.MaxTimeEntry)
@@ -281,14 +309,7 @@ class App(QMainWindow):
         self.BreakTimeEntry.setSizePolicy(sizePolicy1)
         self.BreakTimeEntry.setMinimumSize(QSize(380, 35))
         self.BreakTimeEntry.setFont(font1)
-        self.BreakTimeEntry.setStyleSheet\
-        (
-            """
-            color:rgb(85, 85, 127);
-            background-color: rgba(38, 97, 139, 100);
-            border-radius: 8px;
-            """
-        )
+        self.BreakTimeEntry.setStyleSheet(EntryStyleSheet)
         self.BreakTimeEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.BreakTimeEntry.setAlignment(Qt.AlignCenter)
         self.MiddleRowLayout.addWidget(self.BreakTimeEntry)
@@ -298,14 +319,7 @@ class App(QMainWindow):
         self.OverTimeEntry.setSizePolicy(sizePolicy1)
         self.OverTimeEntry.setMinimumSize(QSize(380, 35))
         self.OverTimeEntry.setFont(font1)
-        self.OverTimeEntry.setStyleSheet\
-        (
-            """
-            color:rgb(85, 85, 127);
-            background-color: rgba(38, 97, 139, 100);
-            border-radius: 8px;
-            """
-        )
+        self.OverTimeEntry.setStyleSheet(EntryStyleSheet)
         self.OverTimeEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.OverTimeEntry.setEchoMode(QLineEdit.Normal)
         self.OverTimeEntry.setAlignment(Qt.AlignCenter)
@@ -325,14 +339,7 @@ class App(QMainWindow):
         self.SessionsEntry.setSizePolicy(sizePolicy1)
         self.SessionsEntry.setMinimumSize(QSize(385, 35))
         self.SessionsEntry.setFont(font1)
-        self.SessionsEntry.setStyleSheet\
-        (
-            """
-            color:rgb(85, 85, 127);
-            background-color: rgba(38, 97, 139, 100);
-            border-radius: 8px;
-            """
-        )
+        self.SessionsEntry.setStyleSheet(EntryStyleSheet)
         self.SessionsEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.SessionsEntry.setAlignment(Qt.AlignCenter)
         self.LastRowLayout.addWidget(self.SessionsEntry)
@@ -352,20 +359,7 @@ class App(QMainWindow):
         self.StartStopButton.setSizePolicy(sizePolicy1)
         self.StartStopButton.setMinimumSize(QSize(0, 120))
         StartStopImageUrl = res('Media/start.png').replace('\\', '/')
-        self.StartStopButton.setStyleSheet\
-        (
-            f"""
-            QPushButton
-            {{
-                image: url({StartStopImageUrl});
-                background-color:rgb(20, 147, 158);
-            }}
-            QPushButton:hover
-            {{
-                background-color:rgba(20, 147, 158, 150)
-            }}
-            """
-        )
+        self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartStopImageUrl))
         self.ButtonSettingsLayout.addWidget(self.StartStopButton)
         self.PlayPauseButton = QPushButton(self.ButtonSettings)
         self.PlayPauseButton.setObjectName("PlayPauseButton")
@@ -373,20 +367,7 @@ class App(QMainWindow):
         self.PlayPauseButton.setSizePolicy(sizePolicy1)
         self.PlayPauseButton.setMinimumSize(QSize(0, 120))
         PlayPauseImageUrl = res('Media/play.png').replace('\\', '/')
-        self.PlayPauseButton.setStyleSheet\
-        (
-            f"""
-            QPushButton
-            {{
-                image: url({PlayPauseImageUrl});
-            	background-color:rgb(20, 147, 158);
-            }}
-            QPushButton:hover
-            {{
-            	background-color:rgba(20, 147, 158, 150)
-            }}
-            """
-        )
+        self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayPauseImageUrl))
         self.ButtonSettingsLayout.addWidget(self.PlayPauseButton)
         self.SkipToBreakButton = QPushButton(self.ButtonSettings)
         self.SkipToBreakButton.setObjectName("SkipToBreakButton")
@@ -394,20 +375,7 @@ class App(QMainWindow):
         self.SkipToBreakButton.setSizePolicy(sizePolicy1)
         self.SkipToBreakButton.setMinimumSize(QSize(0, 120))
         SkipToBreakImageUrl = res('Media/forward.png').replace('\\', '/')
-        self.SkipToBreakButton.setStyleSheet\
-        (
-            f"""
-            QPushButton
-            {{
-                image: url({SkipToBreakImageUrl});
-                background-color:rgb(20, 147, 158);
-            }}
-            QPushButton:hover
-            {{
-            	background-color:rgba(20, 147, 158, 150)
-            }}
-            """
-        )
+        self.SkipToBreakButton.setStyleSheet(ActionButtonStyleSheet(SkipToBreakImageUrl))
         self.ButtonSettingsLayout.addWidget(self.SkipToBreakButton)
         self.SettingFrameLayout.addWidget(self.ButtonSettings)
         self.AppContentLayout.addWidget(self.SettingsFrame)
@@ -433,8 +401,12 @@ class App(QMainWindow):
         self.TimeDisplay.setStyleSheet\
         (
             """
-            color: rgb(255, 255, 255);
-            background-color: rgba(38, 97, 139, 100);
+            QLabel
+            {
+                color: rgb(255, 255, 255);
+                background-color: rgba(38, 97, 139, 100);
+                border-radius 15px;
+            }
             """     
         )
         self.TimeDisplay.setAlignment(Qt.AlignCenter)
@@ -504,11 +476,19 @@ class App(QMainWindow):
         self.setWindowTitle(_translate("Window", "MainWindow")) # set the window title (window)
         self.Title.setText(_translate("Window", "StudyFlow")) # set the window title (internal)
         self.MinTimeEntry.setPlaceholderText(_translate("Window", "Min.Time (minutes)")) # set the placeholder text on the min time entry
+        self.MinTimeEntry.setToolTip(_translate('Window', MinEntryToolTip)) # set the what's this on the min time entry
         self.MaxTimeEntry.setPlaceholderText(_translate("Window", "Max.Time (minutes)")) # set the placeholder text on the max time entry
+        self.MaxTimeEntry.setToolTip(_translate('Window',MinEntryToolTip)) # set the what's this on the max time entry
         self.BreakTimeEntry.setPlaceholderText(_translate("Window", "Break Time (minutes)")) # set the placeholder text on the break time entry
+        self.BreakTimeEntry.setToolTip(_translate('Window', BreakEntryToolTip)) # set the what's this on the break time entry
         self.OverTimeEntry.setPlaceholderText(_translate("Window", "Over Time (minutes)")) # set the placeholder text on the over time entry
+        self.OverTimeEntry.setToolTip(_translate('Window',OverEntryToolTip)) # set the what's this on the over time entry
         self.SessionsEntry.setPlaceholderText(_translate("Window", "Sessions")) # set the placeholder text on the sessions entry
+        self.SessionsEntry.setToolTip(_translate('Window',SessionEntryToolTip)) # set the what's this on the sessions entry
         self.TimeDisplay.setText(_translate("Window", "00:00")) # set the initial value of the time display
+        self.StartStopButton.setToolTip(_translate('Window', 'Start / Stop')) # set the what's this on the start / stop button
+        self.PlayPauseButton.setToolTip(_translate('Window', 'Play / Pause')) # set the what's this on the play / pause button
+        self.SkipToBreakButton.setToolTip(_translate('Window', 'Skip')) # set the what's this on the skip button
         self.Credit.setText(_translate("Window", "by: Patrizio S. Onida")) # set the credit text
 
     def Maximize(self): # this function maximizes the window
@@ -546,36 +526,10 @@ class App(QMainWindow):
         print('StartStop called')
 
         if self.InSession: # check if the user is in session state
-            StartIMageUrl = res('./Media/start.png').replace('\\', '/')
-            self.StartStopButton.setStyleSheet\
-            (
-                f"""
-                QPushButton
-                {{
-                    image: url({StartIMageUrl});
-                    background-color:rgb(20, 147, 158);
-                }}
-                QPushButton:hover
-                {{
-                    background-color:rgba(20, 147, 158, 150)
-                }}
-                """
-            )
+            StartImageUrl = res('./Media/start.png').replace('\\', '/')
+            self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartImageUrl))
             PlayImageUrl = res('./Media/play.png').replace('\\', '/')
-            self.PlayPauseButton.setStyleSheet\
-            (
-                f"""
-                QPushButton
-                {{
-                    image: url({PlayImageUrl});
-                    background-color:rgb(20, 147, 158);
-                }}
-                QPushButton:hover
-                {{
-                    background-color:rgba(20, 147, 158, 150)
-                }}
-                """
-            )
+            self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayImageUrl))
             self.InSession = False # exit the in session state
             self.InCore = False # exit the in core state
             self.InPause = False # exit the in pause state
@@ -606,40 +560,13 @@ class App(QMainWindow):
 
             for _ in range(3):
                 self.EndSound.play() # play the end sound
-
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
                 StopImageUrl = res('./Media/stop.png').replace('\\', '/')
-                self.StartStopButton.setStyleSheet\
-                (
-                    f"""
-                    QPushButton
-                    {{
-                        image: url({StopImageUrl});
-                        background-color:rgb(20, 147, 158);
-                    }}
-                    QPushButton:hover
-                    {{
-                        background-color:rgba(20, 147, 158, 150)
-                    }}
-                    """
-                )
+                self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StopImageUrl))
                 PauseImageUrl = res('./Media/pause.png').replace('\\', '/')
-                self.PlayPauseButton.setStyleSheet\
-                (
-                    f"""
-                    QPushButton
-                    {{
-                        image: url({PauseImageUrl});
-                        background-color:rgb(20, 147, 158);
-                    }}
-                    QPushButton:hover
-                    {{
-                        background-color:rgba(20, 147, 158, 150)
-                    }}
-                    """
-                )
+                self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
                 self.InSession = True # set the user in the in session state
                 self.InCore = True # set the user in the in core state
                 self.Counter = 0 # set the counter to 0
@@ -662,6 +589,16 @@ class App(QMainWindow):
                 self.OverTimeEntry.setEnabled(False) # make the over time entry not clickable
                 self.SessionsEntry.setReadOnly(True) # make the sessions entry read-only
                 self.SessionsEntry.setEnabled(False) # make the sessions entry not clickable
+            else:
+                Error = QMessageBox\
+                (
+                    QMessageBox.Critical, 
+                    'Missing Parameter(s)', 
+                    'it appears that same parameter is missing,\nplease fill all the entries', 
+                    QMessageBox.Ok, 
+                    self
+                )
+                Error.show()
         
         self.TimeDisplay.setStyleSheet\
         (
@@ -683,36 +620,20 @@ class App(QMainWindow):
         
             if self.InPause: # check if the user paused the session
                 PlayImageUrl = res('./Media/play.png').replace('\\', '/')
-                self.PlayPauseButton.setStyleSheet\
-                (
-                    f"""
-                    QPushButton
-                    {{
-                        image: url({PlayImageUrl});
-                        background-color:rgb(20, 147, 158);
-                    }}
-                    QPushButton:hover
-                    {{
-                        background-color:rgba(20, 147, 158, 150)
-                    }}
-                    """
-                )
+                self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayImageUrl))
             else: # the user resumed the session
                 PauseImageUrl = res('./Media/pause.png').replace('\\', '/')
-                self.PlayPauseButton.setStyleSheet\
-                (
-                    f"""
-                    QPushButton
-                    {{
-                        image: url({PauseImageUrl});
-                        background-color:rgb(20, 147, 158);
-                    }}
-                    QPushButton:hover
-                    {{
-                        background-color:rgba(20, 147, 158, 150)
-                    }}
-                    """
-                )
+                self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
+        else:
+            Error = QMessageBox\
+            (
+                QMessageBox.Warning, 
+                'Illegal Action', 
+                'you can\'t resume or pause the session(s) if the timer is not running,\nplease fill all the entries and press the start button (flag)', 
+                QMessageBox.Ok, 
+                self
+            )
+            Error.show()
     
     def SkipToBreak(self, PlaySound = True): # this function allow the user to skip to the break part
         if PlaySound: # check if the sound needs to be played
@@ -747,6 +668,16 @@ class App(QMainWindow):
                     )
 
                 self.TimeDisplay.setText('00:00') # reset the time display
+        else:
+            Error = QMessageBox\
+            (
+                QMessageBox.Warning, 
+                'Illegal Action', 
+                'you can\'t skip to break or in a new session(s) if the timer is not running,\nplease fill all the entries and press the start button (flag)', 
+                QMessageBox.Ok, 
+                self
+            )
+            Error.show()
 
     def Elapse(self): # this function elapse time while checking the state of the user
         if self.InSession: # check if the user is in session state
