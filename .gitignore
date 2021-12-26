@@ -1,2 +1,4 @@
 test*.py
 Interface.py
+/__pycache__/
+/output/

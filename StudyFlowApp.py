@@ -1,3 +1,5 @@
+from os.path import abspath as Abs
+from os.path import join
 from PySide6.QtCore import QCoreApplication
 from PySide6.QtCore import QMetaObject
 from PySide6.QtCore import QPointF
@@ -7,6 +9,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtCore import QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtGui import QIntValidator
+from PySide6.QtGui import QIcon
 from PySide6.QtMultimedia import QSoundEffect
 from PySide6.QtWidgets import QApplication
 from PySide6.QtWidgets import QMainWindow
@@ -20,11 +23,13 @@ from PySide6.QtWidgets import QSizeGrip
 from PySide6.QtWidgets import QSizePolicy
 from PySide6.QtWidgets import QVBoxLayout
 from PySide6.QtWidgets import QWidget
+import sys
 from sys import exit as Exit
 
 class App(QMainWindow):
     def __init__(self): # constructor
         super(App, self).__init__() # super constructor
+        self.setWindowIcon(QIcon(res('Icon.ico')))
         self.isMaximized = False # status of the window at the start of the application
         self.InSession = False # boolean to check if the user started the process
         self.InCore = False # boolean to check if the user is in the core part of session
@@ -50,11 +55,11 @@ class App(QMainWindow):
         self.PlayPauseButton.clicked.connect(lambda: self.PlayPause()) # link the play pause button to the play pause function
         self.SkipToBreakButton.clicked.connect(lambda: self.SkipToBreak()) # link the skip to break button to the skip to break function
         self.ClickSound = QSoundEffect(self) # Sound played when a button is clicked
-        self.ClickSound.setSource(QUrl.fromLocalFile('./Media/click.wav')) # setting the click sound
+        self.ClickSound.setSource(QUrl.fromLocalFile(res('./Media/click.wav'))) # setting the click sound
         self.EndSound = QSoundEffect(self) # Sound played when a part ended
-        self.EndSound.setSource(QUrl.fromLocalFile('./Media/endpart.wav')) # setting the end sound
+        self.EndSound.setSource(QUrl.fromLocalFile(res('./Media/endpart.wav'))) # setting the end sound
         self.PassPhaseSound = QSoundEffect(self) # Sound played when you pass the min time
-        self.PassPhaseSound.setSource(QUrl.fromLocalFile('./Media/passding.wav'))
+        self.PassPhaseSound.setSource(QUrl.fromLocalFile(res('./Media/passding.wav')))
         self.Timer = QTimer() # timer that manage the elapsing of tim in the application
         self.Timer.timeout.connect( lambda: self.Elapse()) # connect the timer to the timer function
         self.Timer.start(1000) # start the timer
@@ -278,11 +283,11 @@ class App(QMainWindow):
         self.BreakTimeEntry.setFont(font1)
         self.BreakTimeEntry.setStyleSheet\
         (
-                """
-                color:rgb(85, 85, 127);
-                background-color: rgba(38, 97, 139, 100);
-                border-radius: 8px;
-                """
+            """
+            color:rgb(85, 85, 127);
+            background-color: rgba(38, 97, 139, 100);
+            border-radius: 8px;
+            """
         )
         self.BreakTimeEntry.setInputMethodHints(Qt.ImhDigitsOnly)
         self.BreakTimeEntry.setAlignment(Qt.AlignCenter)
@@ -346,18 +351,19 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.StartStopButton.sizePolicy().hasHeightForWidth())
         self.StartStopButton.setSizePolicy(sizePolicy1)
         self.StartStopButton.setMinimumSize(QSize(0, 120))
+        StartStopImageUrl = res('Media/start.png').replace('\\', '/')
         self.StartStopButton.setStyleSheet\
         (
-            """
+            f"""
             QPushButton
-            {
-                image: url(./Media/start.png);
+            {{
+                image: url({StartStopImageUrl});
                 background-color:rgb(20, 147, 158);
-            }
+            }}
             QPushButton:hover
-            {
+            {{
                 background-color:rgba(20, 147, 158, 150)
-            }
+            }}
             """
         )
         self.ButtonSettingsLayout.addWidget(self.StartStopButton)
@@ -366,18 +372,19 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.PlayPauseButton.sizePolicy().hasHeightForWidth())
         self.PlayPauseButton.setSizePolicy(sizePolicy1)
         self.PlayPauseButton.setMinimumSize(QSize(0, 120))
+        PlayPauseImageUrl = res('Media/play.png').replace('\\', '/')
         self.PlayPauseButton.setStyleSheet\
         (
-            """
+            f"""
             QPushButton
-            {
-                image: url(./Media/pause.png);
+            {{
+                image: url({PlayPauseImageUrl});
             	background-color:rgb(20, 147, 158);
-            }
+            }}
             QPushButton:hover
-            {
+            {{
             	background-color:rgba(20, 147, 158, 150)
-            }
+            }}
             """
         )
         self.ButtonSettingsLayout.addWidget(self.PlayPauseButton)
@@ -386,18 +393,19 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.SkipToBreakButton.sizePolicy().hasHeightForWidth())
         self.SkipToBreakButton.setSizePolicy(sizePolicy1)
         self.SkipToBreakButton.setMinimumSize(QSize(0, 120))
+        SkipToBreakImageUrl = res('Media/forward.png').replace('\\', '/')
         self.SkipToBreakButton.setStyleSheet\
         (
-            """
+            f"""
             QPushButton
-            {
-                image: url(./Media/forward.png);
+            {{
+                image: url({SkipToBreakImageUrl});
                 background-color:rgb(20, 147, 158);
-            }
-                QPushButton:hover
-            {
+            }}
+            QPushButton:hover
+            {{
             	background-color:rgba(20, 147, 158, 150)
-            }
+            }}
             """
         )
         self.ButtonSettingsLayout.addWidget(self.SkipToBreakButton)
@@ -538,18 +546,34 @@ class App(QMainWindow):
         print('StartStop called')
 
         if self.InSession: # check if the user is in session state
+            StartIMageUrl = res('./Media/start.png').replace('\\', '/')
             self.StartStopButton.setStyleSheet\
             (
-                """
+                f"""
                 QPushButton
-                {
-                    image: url(./Media/start.png);
+                {{
+                    image: url({StartIMageUrl});
                     background-color:rgb(20, 147, 158);
-                }
+                }}
                 QPushButton:hover
-                {
+                {{
                     background-color:rgba(20, 147, 158, 150)
-                }
+                }}
+                """
+            )
+            PlayImageUrl = res('./Media/play.png').replace('\\', '/')
+            self.PlayPauseButton.setStyleSheet\
+            (
+                f"""
+                QPushButton
+                {{
+                    image: url({PlayImageUrl});
+                    background-color:rgb(20, 147, 158);
+                }}
+                QPushButton:hover
+                {{
+                    background-color:rgba(20, 147, 158, 150)
+                }}
                 """
             )
             self.InSession = False # exit the in session state
@@ -582,21 +606,38 @@ class App(QMainWindow):
 
             for _ in range(3):
                 self.EndSound.play() # play the end sound
+
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
+                StopImageUrl = res('./Media/stop.png').replace('\\', '/')
                 self.StartStopButton.setStyleSheet\
                 (
-                    """
+                    f"""
                     QPushButton
-                    {
-                        image: url(./Media/stop.png);
+                    {{
+                        image: url({StopImageUrl});
                         background-color:rgb(20, 147, 158);
-                    }
+                    }}
                     QPushButton:hover
-                    {
+                    {{
                         background-color:rgba(20, 147, 158, 150)
-                    }
+                    }}
+                    """
+                )
+                PauseImageUrl = res('./Media/pause.png').replace('\\', '/')
+                self.PlayPauseButton.setStyleSheet\
+                (
+                    f"""
+                    QPushButton
+                    {{
+                        image: url({PauseImageUrl});
+                        background-color:rgb(20, 147, 158);
+                    }}
+                    QPushButton:hover
+                    {{
+                        background-color:rgba(20, 147, 158, 150)
+                    }}
                     """
                 )
                 self.InSession = True # set the user in the in session state
@@ -641,33 +682,35 @@ class App(QMainWindow):
             self.InPause = not self.InPause # reverse the pause state
         
             if self.InPause: # check if the user paused the session
+                PlayImageUrl = res('./Media/play.png').replace('\\', '/')
                 self.PlayPauseButton.setStyleSheet\
                 (
-                    """
+                    f"""
                     QPushButton
-                    {
-                        image: url(./Media/play.png);
+                    {{
+                        image: url({PlayImageUrl});
                         background-color:rgb(20, 147, 158);
-                    }
+                    }}
                     QPushButton:hover
-                    {
+                    {{
                         background-color:rgba(20, 147, 158, 150)
-                    }
+                    }}
                     """
                 )
             else: # the user resumed the session
+                PauseImageUrl = res('./Media/pause.png').replace('\\', '/')
                 self.PlayPauseButton.setStyleSheet\
                 (
-                    """
+                    f"""
                     QPushButton
-                    {
-                        image: url(./Media/pause.png);
+                    {{
+                        image: url({PauseImageUrl});
                         background-color:rgb(20, 147, 158);
-                    }
+                    }}
                     QPushButton:hover
-                    {
+                    {{
                         background-color:rgba(20, 147, 158, 150)
-                    }
+                    }}
                     """
                 )
     
@@ -762,7 +805,16 @@ class App(QMainWindow):
                         else: # the user ended all sessions
                             self.StartStop(False) # stop the program (ready to restart)
 
+def res(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = Abs(".")
+
+    return join(base_path, relative_path)
+
 if __name__ == '__main__':
+    print(res('Media/start.png'))
     StudyFlow = QApplication([])
     StudyFlow.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     StudyFlow.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
