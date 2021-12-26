@@ -136,11 +136,11 @@ class App(QMainWindow):
         self.PlayPauseButton.clicked.connect(lambda: self.PlayPause()) # link the play pause button to the play pause function
         self.SkipToBreakButton.clicked.connect(lambda: self.SkipToBreak()) # link the skip to break button to the skip to break function
         self.ClickSound = QSoundEffect(self) # Sound played when a button is clicked
-        self.ClickSound.setSource(QUrl.fromLocalFile(res('./Media/click.wav'))) # setting the click sound
+        self.ClickSound.setSource(QUrl.fromLocalFile(res('./Media/Audios/click.wav'))) # setting the click sound
         self.EndSound = QSoundEffect(self) # Sound played when a part ended
-        self.EndSound.setSource(QUrl.fromLocalFile(res('./Media/endpart.wav'))) # setting the end sound
+        self.EndSound.setSource(QUrl.fromLocalFile(res('./Media/Audios/endpart.wav'))) # setting the end sound
         self.PassPhaseSound = QSoundEffect(self) # Sound played when you pass the min time
-        self.PassPhaseSound.setSource(QUrl.fromLocalFile(res('./Media/passding.wav')))
+        self.PassPhaseSound.setSource(QUrl.fromLocalFile(res('./Media/Audios/passding.wav')))
         self.Timer = QTimer() # timer that manage the elapsing of tim in the application
         self.Timer.timeout.connect( lambda: self.Elapse()) # connect the timer to the timer function
         self.Timer.start(1000) # start the timer
@@ -358,7 +358,7 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.StartStopButton.sizePolicy().hasHeightForWidth())
         self.StartStopButton.setSizePolicy(sizePolicy1)
         self.StartStopButton.setMinimumSize(QSize(0, 120))
-        StartStopImageUrl = res('Media/start.png').replace('\\', '/')
+        StartStopImageUrl = res('Media/Images/start.png').replace('\\', '/')
         self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartStopImageUrl))
         self.ButtonSettingsLayout.addWidget(self.StartStopButton)
         self.PlayPauseButton = QPushButton(self.ButtonSettings)
@@ -366,7 +366,7 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.PlayPauseButton.sizePolicy().hasHeightForWidth())
         self.PlayPauseButton.setSizePolicy(sizePolicy1)
         self.PlayPauseButton.setMinimumSize(QSize(0, 120))
-        PlayPauseImageUrl = res('Media/play.png').replace('\\', '/')
+        PlayPauseImageUrl = res('Media/Images/play.png').replace('\\', '/')
         self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayPauseImageUrl))
         self.ButtonSettingsLayout.addWidget(self.PlayPauseButton)
         self.SkipToBreakButton = QPushButton(self.ButtonSettings)
@@ -374,7 +374,7 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.SkipToBreakButton.sizePolicy().hasHeightForWidth())
         self.SkipToBreakButton.setSizePolicy(sizePolicy1)
         self.SkipToBreakButton.setMinimumSize(QSize(0, 120))
-        SkipToBreakImageUrl = res('Media/forward.png').replace('\\', '/')
+        SkipToBreakImageUrl = res('Media/Images/forward.png').replace('\\', '/')
         self.SkipToBreakButton.setStyleSheet(ActionButtonStyleSheet(SkipToBreakImageUrl))
         self.ButtonSettingsLayout.addWidget(self.SkipToBreakButton)
         self.SettingFrameLayout.addWidget(self.ButtonSettings)
@@ -526,9 +526,9 @@ class App(QMainWindow):
         print('StartStop called')
 
         if self.InSession: # check if the user is in session state
-            StartImageUrl = res('./Media/start.png').replace('\\', '/')
+            StartImageUrl = res('./Media/Images/start.png').replace('\\', '/')
             self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartImageUrl))
-            PlayImageUrl = res('./Media/play.png').replace('\\', '/')
+            PlayImageUrl = res('./Media/Images/play.png').replace('\\', '/')
             self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayImageUrl))
             self.InSession = False # exit the in session state
             self.InCore = False # exit the in core state
@@ -563,9 +563,9 @@ class App(QMainWindow):
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
-                StopImageUrl = res('./Media/stop.png').replace('\\', '/')
+                StopImageUrl = res('./Media/Images/stop.png').replace('\\', '/')
                 self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StopImageUrl))
-                PauseImageUrl = res('./Media/pause.png').replace('\\', '/')
+                PauseImageUrl = res('./Media/Images/pause.png').replace('\\', '/')
                 self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
                 self.InSession = True # set the user in the in session state
                 self.InCore = True # set the user in the in core state
@@ -619,10 +619,10 @@ class App(QMainWindow):
             self.InPause = not self.InPause # reverse the pause state
         
             if self.InPause: # check if the user paused the session
-                PlayImageUrl = res('./Media/play.png').replace('\\', '/')
+                PlayImageUrl = res('./Media/Images/play.png').replace('\\', '/')
                 self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayImageUrl))
             else: # the user resumed the session
-                PauseImageUrl = res('./Media/pause.png').replace('\\', '/')
+                PauseImageUrl = res('./Media/Images/pause.png').replace('\\', '/')
                 self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
         else:
             Error = QMessageBox\
@@ -736,11 +736,11 @@ class App(QMainWindow):
                         else: # the user ended all sessions
                             self.StartStop(False) # stop the program (ready to restart)
 
-def res(relative_path):
+def res(relative_path): # this function locate the resources when the script is compiled
     try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = Abs(".")
+        base_path = sys._MEIPASS # set the base (outside of the project) of path
+    except Exception: 
+        base_path = Abs(".") # set the base (outside of the project) of path
 
     return join(base_path, relative_path)
 
