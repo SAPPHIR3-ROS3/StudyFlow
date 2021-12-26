@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "D:/Projects/Python/StudyFlow/StudyFlowApp.py"
+   "value": "D:/Projects/Python/StudyFlow/StudyFlow.py"
   },
   {
    "optionDest": "onefile",
@@ -23,7 +23,7 @@
   },
   {
    "optionDest": "name",
-   "value": "StudyFlowV1"
+   "value": "StudyFlow"
   },
   {
    "optionDest": "ascii",
@@ -72,6 +72,10 @@
   {
    "optionDest": "datas",
    "value": "D:/Projects/Python/StudyFlow/Media;Media/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "D:/Projects/Python/StudyFlow/Icon.ico;."
   }
  ],
  "nonPyinstallerOptions": {

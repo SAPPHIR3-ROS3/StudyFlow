@@ -814,7 +814,6 @@ def res(relative_path):
     return join(base_path, relative_path)
 
 if __name__ == '__main__':
-    print(res('Media/start.png'))
     StudyFlow = QApplication([])
     StudyFlow.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     StudyFlow.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
