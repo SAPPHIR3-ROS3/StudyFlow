@@ -36,7 +36,6 @@ once StudyFlow started you need to set the following entries (no particular orde
 * Break Time (Minutes)
 * Over Time (Minutes)
 * Sessions (Quantity)
-<br>
 <div>
 after filling all the entries you need to press start (flag) button in order to start the timer. while the timer is running you can always pause, but you can't skip to break if you have not reached the minimum time elapsed<br>
 if you passed the minimum time  from the start of the timer you can take a break pressing the skip (fast forward) button<br><br>
