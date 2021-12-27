@@ -31,7 +31,7 @@
   },
   {
    "optionDest": "clean_build",
-   "value": false
+   "value": true
   },
   {
    "optionDest": "loglevel",
@@ -71,7 +71,11 @@
   },
   {
    "optionDest": "datas",
-   "value": "D:/Projects/Python/StudyFlow/Media;Media/"
+   "value": "D:/Projects/Python/StudyFlow/Media/Audios;Media/Audios/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "D:/Projects/Python/StudyFlow/Media/Images;Media/Images/"
   },
   {
    "optionDest": "datas",
@@ -79,7 +83,7 @@
   }
  ],
  "nonPyinstallerOptions": {
-  "increaseRecursionLimit": true,
+  "increaseRecursionLimit": false,
   "manualArguments": ""
  }
 }
