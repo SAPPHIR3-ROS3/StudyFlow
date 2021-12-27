@@ -358,7 +358,7 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.StartStopButton.sizePolicy().hasHeightForWidth())
         self.StartStopButton.setSizePolicy(sizePolicy1)
         self.StartStopButton.setMinimumSize(QSize(0, 120))
-        StartStopImageUrl = res('Media/Images/start.png').replace('\\', '/')
+        StartStopImageUrl = res('Media/Images/play.png').replace('\\', '/')
         self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartStopImageUrl))
         self.ButtonSettingsLayout.addWidget(self.StartStopButton)
         self.PlayPauseButton = QPushButton(self.ButtonSettings)
@@ -366,7 +366,7 @@ class App(QMainWindow):
         sizePolicy1.setHeightForWidth(self.PlayPauseButton.sizePolicy().hasHeightForWidth())
         self.PlayPauseButton.setSizePolicy(sizePolicy1)
         self.PlayPauseButton.setMinimumSize(QSize(0, 120))
-        PlayPauseImageUrl = res('Media/Images/play.png').replace('\\', '/')
+        PlayPauseImageUrl = res('Media/Images/pause.png').replace('\\', '/')
         self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayPauseImageUrl))
         self.ButtonSettingsLayout.addWidget(self.PlayPauseButton)
         self.SkipToBreakButton = QPushButton(self.ButtonSettings)
@@ -475,15 +475,15 @@ class App(QMainWindow):
         _translate = QCoreApplication.translate # translate function
         self.setWindowTitle(_translate("Window", "MainWindow")) # set the window title (window)
         self.Title.setText(_translate("Window", "StudyFlow")) # set the window title (internal)
-        self.MinTimeEntry.setPlaceholderText(_translate("Window", "Min.Time (minutes)")) # set the placeholder text on the min time entry
+        self.MinTimeEntry.setPlaceholderText(_translate("Window", "*Min.Time (minutes)")) # set the placeholder text on the min time entry
         self.MinTimeEntry.setToolTip(_translate('Window', MinEntryToolTip)) # set the what's this on the min time entry
-        self.MaxTimeEntry.setPlaceholderText(_translate("Window", "Max.Time (minutes)")) # set the placeholder text on the max time entry
+        self.MaxTimeEntry.setPlaceholderText(_translate("Window", "*Max.Time (minutes)")) # set the placeholder text on the max time entry
         self.MaxTimeEntry.setToolTip(_translate('Window',MinEntryToolTip)) # set the what's this on the max time entry
-        self.BreakTimeEntry.setPlaceholderText(_translate("Window", "Break Time (minutes)")) # set the placeholder text on the break time entry
+        self.BreakTimeEntry.setPlaceholderText(_translate("Window", "*Break Time (minutes)")) # set the placeholder text on the break time entry
         self.BreakTimeEntry.setToolTip(_translate('Window', BreakEntryToolTip)) # set the what's this on the break time entry
-        self.OverTimeEntry.setPlaceholderText(_translate("Window", "Over Time (minutes)")) # set the placeholder text on the over time entry
+        self.OverTimeEntry.setPlaceholderText(_translate("Window", "*Over Time (minutes)")) # set the placeholder text on the over time entry
         self.OverTimeEntry.setToolTip(_translate('Window',OverEntryToolTip)) # set the what's this on the over time entry
-        self.SessionsEntry.setPlaceholderText(_translate("Window", "Sessions")) # set the placeholder text on the sessions entry
+        self.SessionsEntry.setPlaceholderText(_translate("Window", "*Sessions")) # set the placeholder text on the sessions entry
         self.SessionsEntry.setToolTip(_translate('Window',SessionEntryToolTip)) # set the what's this on the sessions entry
         self.TimeDisplay.setText(_translate("Window", "00:00")) # set the initial value of the time display
         self.StartStopButton.setToolTip(_translate('Window', 'Start / Stop')) # set the what's this on the start / stop button
@@ -528,8 +528,6 @@ class App(QMainWindow):
         if self.InSession: # check if the user is in session state
             StartImageUrl = res('./Media/Images/start.png').replace('\\', '/')
             self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartImageUrl))
-            PlayImageUrl = res('./Media/Images/play.png').replace('\\', '/')
-            self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PlayImageUrl))
             self.InSession = False # exit the in session state
             self.InCore = False # exit the in core state
             self.InPause = False # exit the in pause state
@@ -557,16 +555,11 @@ class App(QMainWindow):
             self.SessionsEntry.setReadOnly(False) # set the sessions entry as editable
             self.SessionsEntry.setEnabled(True) # enable the focus (to be clicked) on the sessions entry
             self.SessionsEntry.clear() # clear the sessions entry
-
-            for _ in range(3):
-                self.EndSound.play() # play the end sound
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
                 StopImageUrl = res('./Media/Images/stop.png').replace('\\', '/')
                 self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StopImageUrl))
-                PauseImageUrl = res('./Media/Images/pause.png').replace('\\', '/')
-                self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
                 self.InSession = True # set the user in the in session state
                 self.InCore = True # set the user in the in core state
                 self.Counter = 0 # set the counter to 0
