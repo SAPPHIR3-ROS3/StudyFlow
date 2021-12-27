@@ -526,7 +526,7 @@ class App(QMainWindow):
         print('StartStop called')
 
         if self.InSession: # check if the user is in session state
-            StartImageUrl = res('./Media/Images/start.png').replace('\\', '/')
+            StartImageUrl = res('./Media/Images/play.png').replace('\\', '/')
             self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartImageUrl))
             self.InSession = False # exit the in session state
             self.InCore = False # exit the in core state
@@ -542,19 +542,14 @@ class App(QMainWindow):
             self.TotalSessionTime = 0 # set the total time per session
             self.MinTimeEntry.setReadOnly(False) # set the min time entry as editable
             self.MinTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the min time entry
-            self.MinTimeEntry.clear() # clear the min time entry
             self.MaxTimeEntry.setReadOnly(False) # set the max time entry as editable
             self.MaxTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the max time entry
-            self.MaxTimeEntry.clear() # clear the max time entry
             self.BreakTimeEntry.setReadOnly(False) # set the break time entry as editable
             self.BreakTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the break time entry
-            self.BreakTimeEntry.clear() # clear the break time entry
             self.OverTimeEntry.setReadOnly(False) # set the over time entry as editable
             self.OverTimeEntry.setEnabled(True) # enable the focus (to be clicked) on the over time entry
-            self.OverTimeEntry.clear() # clear the over time entry
             self.SessionsEntry.setReadOnly(False) # set the sessions entry as editable
             self.SessionsEntry.setEnabled(True) # enable the focus (to be clicked) on the sessions entry
-            self.SessionsEntry.clear() # clear the sessions entry
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
             self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
