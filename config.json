@@ -83,7 +83,7 @@
   }
  ],
  "nonPyinstallerOptions": {
-  "increaseRecursionLimit": false,
+  "increaseRecursionLimit": true,
   "manualArguments": ""
  }
 }
