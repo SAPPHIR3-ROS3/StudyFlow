@@ -76,6 +76,16 @@ QToolTip
 }}
 """
 
+TimeDisplayStyleSheet = lambda Red, Green, Blue:\
+f"""
+QLabel
+{{
+    color: rgb({Red}, {Green}, {Blue});
+    background-color: rgba(38, 97, 139, 100);
+    border-radius 15px;
+}}
+""" 
+
 MinEntryToolTip =\
 """FIELD REQUIRED
 In this field you can enter the minimum time you want to study.
@@ -94,9 +104,8 @@ If you will skip during this part you will start next session.
 example: 20 (minutes)"""
 
 OverEntryToolTip =\
-"""FIELD REQUIRED
-in this field you can enter the time after the maximum time ended.
-(if set to 0 there will be no over time)
+"""in this field you can enter the time after the maximum time ended.
+(if set to 0 or left blank there will be no over time)
 not raccommended to go over 10 minutes"""
 
 SessionEntryToolTip =\
@@ -398,17 +407,7 @@ class App(QMainWindow):
         font2.setStyleStrategy(QFont.PreferAntialias)
         self.TimeDisplay.setFont(font2)
         self.TimeDisplay.setContextMenuPolicy(Qt.DefaultContextMenu)
-        self.TimeDisplay.setStyleSheet\
-        (
-            """
-            QLabel
-            {
-                color: rgb(255, 255, 255);
-                background-color: rgba(38, 97, 139, 100);
-                border-radius 15px;
-            }
-            """     
-        )
+        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 255, 255))
         self.TimeDisplay.setAlignment(Qt.AlignCenter)
         self.TimeDisplay.setIndent(0)
         self.TimeFrame.addWidget(self.TimeDisplay)
@@ -481,7 +480,7 @@ class App(QMainWindow):
         self.MaxTimeEntry.setToolTip(_translate('Window',MinEntryToolTip)) # set the what's this on the max time entry
         self.BreakTimeEntry.setPlaceholderText(_translate("Window", "*Break Time (minutes)")) # set the placeholder text on the break time entry
         self.BreakTimeEntry.setToolTip(_translate('Window', BreakEntryToolTip)) # set the what's this on the break time entry
-        self.OverTimeEntry.setPlaceholderText(_translate("Window", "*Over Time (minutes)")) # set the placeholder text on the over time entry
+        self.OverTimeEntry.setPlaceholderText(_translate("Window", "Over Time (minutes)")) # set the placeholder text on the over time entry
         self.OverTimeEntry.setToolTip(_translate('Window',OverEntryToolTip)) # set the what's this on the over time entry
         self.SessionsEntry.setPlaceholderText(_translate("Window", "*Sessions")) # set the placeholder text on the sessions entry
         self.SessionsEntry.setToolTip(_translate('Window',SessionEntryToolTip)) # set the what's this on the sessions entry
@@ -528,6 +527,8 @@ class App(QMainWindow):
         if self.InSession: # check if the user is in session state
             StartImageUrl = res('./Media/Images/play.png').replace('\\', '/')
             self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartImageUrl))
+            PauseImageUrl = res('./Media/Images/pause.png').replace('\\', '/')
+            self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
             self.InSession = False # exit the in session state
             self.InCore = False # exit the in core state
             self.InPause = False # exit the in pause state
@@ -552,7 +553,7 @@ class App(QMainWindow):
             self.SessionsEntry.setEnabled(True) # enable the focus (to be clicked) on the sessions entry
         else: # the user is not in the in session state
             if self.MinTimeEntry.text() != '' and self.MaxTimeEntry.text() != '' and \
-            self.BreakTimeEntry.text() != '' and self.OverTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
+            self.BreakTimeEntry.text() != '' and self.SessionsEntry.text() != '': # check if the user fill all the required entries
                 StopImageUrl = res('./Media/Images/stop.png').replace('\\', '/')
                 self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StopImageUrl))
                 self.InSession = True # set the user in the in session state
@@ -563,9 +564,8 @@ class App(QMainWindow):
                 self.ActiveMaxTime = int(self.MaxTimeEntry.text()) * 60 # set maximum time (in minutes)
                 self.ActiveMaxTime = self.ActiveMaxTime if self.ActiveMinTime < self.ActiveMaxTime else self.ActiveMinTime + self.ActiveMaxTime # set the max time bigger than the min time
                 self.ActiveBreakTime = int(self.BreakTimeEntry.text()) * 60 # set break time (in minutes)
-                self.ActiveOverTime = int(self.OverTimeEntry.text()) * 60 # set over time (in minutes)
+                self.ActiveOverTime = int(self.OverTimeEntry.text()) * 60 if self.OverTimeEntry.text() != '' else 0 # set over time (in minutes)
                 self.ActiveOverTime = self.ActiveMaxTime + self.ActiveOverTime if self.ActiveOverTime < self.ActiveMaxTime else self.ActiveOverTime # set the over time bigger than the max time
-                self.ActiveSession = 1 # set the actual session
                 self.TotalSessions = int(self.SessionsEntry.text()) # set the total session
                 self.MinTimeEntry.setReadOnly(True) # make the min time entry read-only
                 self.MinTimeEntry.setEnabled(False) # make the min time entry not clickable
@@ -588,13 +588,7 @@ class App(QMainWindow):
                 )
                 Error.show()
         
-        self.TimeDisplay.setStyleSheet\
-        (
-            """
-            color: rgb(255, 255,255);
-            background-color: rgba(38, 97, 139, 100);
-            """  
-        )
+        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 255, 255))
         self.TimeDisplay.setText('00:00') # set the time display as 0
     
     def PlayPause(self, PlaySound = True): # this function reverse the pause state
@@ -602,6 +596,7 @@ class App(QMainWindow):
             self.ClickSound.play() # play the click sound
         
         print('PlayPause called')
+        print(f'self.Counter : {self.Counter} | self.BreakCounter {self.BreakCounter} | self.InCore : {self.InCore} \nself.InPause : {self.InPause} | self.ActiveSession : {self.ActiveSession} | self.TotalSessions : {self.TotalSessions}\nself.ActiveMinTime : {self.ActiveMinTime} | self.ActiveMaxTime : {self.ActiveMaxTime} | self.ActiveOverTime : {self.ActiveOverTime}')
 
         if self.InSession: # check if the user is in session
             self.InPause = not self.InPause # reverse the pause state
@@ -673,32 +668,14 @@ class App(QMainWindow):
                 if self.Counter < self.ActiveOverTime and not self.InBreak: # check if the user is in the study part
                     self.Counter += 1 # increment the counter
                     if self.Counter == 1:
-                        self.TimeDisplay.setStyleSheet\
-                        (
-                            """
-                            color: rgb(255, 145, 0);
-                            background-color: rgba(38, 97, 139, 100);
-                            """
-                        )
+                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 145, 0))
                     elif self.Counter == self.ActiveMinTime: # check if the counter is equal the min time (out of in core state)
                         self.InCore = False # set the user off the in core state (allow the user to skip to the break)
-                        self.TimeDisplay.setStyleSheet\
-                        (
-                            """
-                            color: rgb(255, 234, 0);
-                            background-color: rgba(38, 97, 139, 100);
-                            """     
-                        )
+                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 234, 0))
                         self.PassPhaseSound.play()
                     elif self.Counter == self.ActiveMaxTime: # check if the counter is equal the max time 
                         self.InCore = False # set the user off the in core state (allow the user to skip to the break)
-                        self.TimeDisplay.setStyleSheet\
-                        (
-                            """
-                            color: rgb(158, 0, 0);
-                            background-color: rgba(38, 97, 139, 100);
-                            """     
-                        )
+                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(158, 0, 0))
                         self.EndSound.play()
                         self.EndSound.play()
                     elif self.Counter == self.ActiveOverTime: # check if the counter is equal the over time
@@ -721,6 +698,7 @@ class App(QMainWindow):
                             self.Inbreak = False # set the user off the in break state
                             self.InPause = False # set the user on the in pause state
                             self.EndSound.play()
+                            self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 145, 0))
                         else: # the user ended all sessions
                             self.StartStop(False) # stop the program (ready to restart)
 
