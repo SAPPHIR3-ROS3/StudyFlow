@@ -1,0 +1,3 @@
+macOS /Users/username/Library/Preferences
+linux $HOME/.config/$YOURAPP/
+windows c:\users\{username}\AppData\Local\Packages\{packageID}
