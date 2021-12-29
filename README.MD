@@ -31,14 +31,16 @@ python StudyFlow.py
 
 ## How to Use
 once StudyFlow started you need to set the following entries (no particular order)
-* Min. Time (Minutes)
-* Max. Time (Minutes)
-* Break Time (Minutes)
-* Over Time (Minutes)
-* Sessions (Quantity)
-<div>
-after filling all the entries you need to press start (flag) button in order to start the timer. while the timer is running you can always pause, but you can't skip to break if you have not reached the minimum time elapsed<br>
-if you passed the minimum time  from the start of the timer you can take a break pressing the skip (fast forward) button<br><br>
+* "*Min. Time (Minutes)" indicates the minimum you want to study PER session
+* "*Max. Time (Minutes)" indicates the maximum you want to study PER session (if Max. Time is less than than the Min. Time they will be both summed to create the real Max. Time)
+* "*Break Time (Minutes)" idicates the time you want to take a break PER session
+* "Over Time (Minutes)" indicates the time the timer will go on after it will pass the Max. Time (if set to 0 or left blank there won't be any over time)
+* "*Sessions (Quantity)" indicates the time you want to repeat a single session  
+after filling all the entries you need to press start button in order to start the timer. while the timer is running you can always pause, but you can't skip to break if you have not reached the minimum time elapsed<br>
+if you passed the minimum time  from the start of the timer you can take a break pressing the skip (fast forward) button<br>
+a session ends when the break time ends<br><br>
+NOTE 1<br>
+KEEP IN MIND THAT YOU SHOULD DIVERSIFY SUBJECT WHEN PASSING FROM A SESSION TO ANOTHER<br><br>
 NOTE<br>
 if you continue to study even after the maximum time set, you will go in over time NOT on break. If you set the over time to 0 you will go on break
 </div>
