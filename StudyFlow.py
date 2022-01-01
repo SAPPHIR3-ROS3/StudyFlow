@@ -528,7 +528,7 @@ class App(QMainWindow):
             StartImageUrl = res('./Media/Images/play.png').replace('\\', '/')
             self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(StartImageUrl))
             PauseImageUrl = res('./Media/Images/pause.png').replace('\\', '/')
-            self.StartStopButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
+            self.PlayPauseButton.setStyleSheet(ActionButtonStyleSheet(PauseImageUrl))
             self.InSession = False # exit the in session state
             self.InCore = False # exit the in core state
             self.InPause = False # exit the in pause state
@@ -667,21 +667,22 @@ class App(QMainWindow):
             if not self.InPause: # check if the user is not in pause state
                 if self.Counter < self.ActiveOverTime and not self.InBreak: # check if the user is in the study part
                     self.Counter += 1 # increment the counter
-                    if self.Counter == 1:
-                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 145, 0))
+                    if self.Counter == 1: # check if the counter is started
+                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 145, 0)) # set the timedisplay foreground color to orange
                     elif self.Counter == self.ActiveMinTime: # check if the counter is equal the min time (out of in core state)
                         self.InCore = False # set the user off the in core state (allow the user to skip to the break)
-                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 234, 0))
-                        self.PassPhaseSound.play()
+                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 234, 0)) # set the timedisplay foreground color to yellow
+                        self.PassPhaseSound.play() # play the pass phase sound
                     elif self.Counter == self.ActiveMaxTime: # check if the counter is equal the max time 
                         self.InCore = False # set the user off the in core state (allow the user to skip to the break)
-                        self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(158, 0, 0))
-                        self.EndSound.play()
-                        self.EndSound.play()
+                        if self.ActiveMaxTime != self.ActiveOverTime: # check if the counter is equal the max time and the max time is difference between max time and over time
+                            self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(158, 0, 0))  # set the timedisplay foreground color to red
+                        self.EndSound.play() # play the end sound
+                        self.EndSound.play() # play the end sound
                     elif self.Counter == self.ActiveOverTime: # check if the counter is equal the over time
-                        self.EndSound.play()
-                        self.EndSound.play()
-                        self.SkipToBreak(False)
+                        self.EndSound.play() # play the end sound
+                        self.EndSound.play() # play the end sound
+                        self.SkipToBreak(False) # skip to the break without playing the click sound
                     
                     self.TimeDisplay.setText(self.ConvertedCounter(self.Counter)) # convert the counter and display it
                 else: # the user is in break state
@@ -697,8 +698,8 @@ class App(QMainWindow):
                             self.InCore = True # set the user on the in core state
                             self.Inbreak = False # set the user off the in break state
                             self.InPause = False # set the user on the in pause state
-                            self.EndSound.play()
-                            self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 145, 0))
+                            self.EndSound.play() # play the end sound
+                            self.TimeDisplay.setStyleSheet(TimeDisplayStyleSheet(255, 145, 0)) # set the time display foreground color to orange
                         else: # the user ended all sessions
                             self.StartStop(False) # stop the program (ready to restart)
 
@@ -711,7 +712,7 @@ def res(relative_path): # this function locate the resources when the script is 
     return join(base_path, relative_path)
 
 if __name__ == '__main__':
-    StudyFlow = QApplication([])
+    StudyFlow = QApplication(sys.argv)
     StudyFlow.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     StudyFlow.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     StudyFlowWindow = App()
